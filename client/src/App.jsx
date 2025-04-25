@@ -1,16 +1,24 @@
 // import { useState } from 'react'
-
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import './App.css'
-
+import Home from './pages/Home'
+import PdfSummary from "./pages/PdfSummary";
+import YtNotesGeneration from "./pages/YtNotesGeneration";
+import ArticleSummary from "./pages/ArticleSummary";
+import SingleCourse from "./pages/SingleCourse";
 function App() {
-
   return (
-    <section>
-      <h1 className="text-3xl font-bold ">
-      Let's make Vidyamandala!
-    </h1>
-    </section>
-  )
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/pdf-summary-qNa" element={<PdfSummary/>}/>
+        <Route path="/single-course" element={<SingleCourse/>}/>
+        <Route path="/yt-notes-generation" element={<YtNotesGeneration/>}/>
+        <Route path="/article-qNa" element={<ArticleSummary/>}/>
+      </Routes>
+    </BrowserRouter>
+  );
 }
+
 
 export default App
