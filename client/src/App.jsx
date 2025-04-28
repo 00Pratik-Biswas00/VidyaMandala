@@ -6,6 +6,8 @@ import PdfSummary from "./pages/PdfSummary";
 import YtNotesGeneration from "./pages/YtNotesGeneration";
 import ArticleSummary from "./pages/ArticleSummary";
 import SingleCourse from "./pages/SingleCourse";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
 function App() {
   return (
     <BrowserRouter>

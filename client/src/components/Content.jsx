@@ -1,173 +1,114 @@
 import React, { useState } from "react";
-import { Users, Clock, Globe } from "lucide-react";
+import { Users, Clock, Globe, Filter } from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
-
-const placeholderImage = "https://placehold.co/600x400";
+import Navbar from "./Navbar"; 
+import CourseCard from "./CourseCard";
 
 const Content = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
 
-  const epamCourses = [
+  const allCourses = [
     {
       title: "React for Beginners",
+      category: "Web",
       enrolled: 4200,
       duration: "6h 30m",
       language: "English",
-    },
-    {
-      title: "JavaScript Mastery",
-      enrolled: 3100,
-      duration: "8h",
-      language: "English",
+      placeholderImage: "https://placehold.co/600x400",
     },
     {
       title: "Node.js Crash Course",
+      category: "Backend",
       enrolled: 2900,
       duration: "5h",
       language: "English",
-    },
-    {
-      title: "SQL & Database Design",
-      enrolled: 3300,
-      duration: "6h 10m",
-      language: "English",
-    },
-    {
-      title: "Advanced React Patterns",
-      enrolled: 2700,
-      duration: "7h",
-      language: "English",
-    },
-    {
-      title: "TypeScript Essentials",
-      enrolled: 2000,
-      duration: "5h 45m",
-      language: "English",
-    },
-    {
-      title: "Docker Basics",
-      enrolled: 1800,
-      duration: "4h",
-      language: "English",
-    },
-    {
-      title: "Microservices with Node.js",
-      enrolled: 2200,
-      duration: "6h 50m",
-      language: "English",
-    },
-  ];
-
-  const awsCourses = [
-    {
-      title: "Python for Data Science",
-      enrolled: 5500,
-      duration: "10h 15m",
-      language: "English",
-    },
-    {
-      title: "CSS Flexbox & Grid",
-      enrolled: 1800,
-      duration: "3h 45m",
-      language: "English",
-    },
-    {
-      title: "Vue.js Basics",
-      enrolled: 2200,
-      duration: "4h 20m",
-      language: "English",
-    },
-    {
-      title: "Web Accessibility",
-      enrolled: 1500,
-      duration: "2h 50m",
-      language: "English",
+      placeholderImage: "https://placehold.co/600x400",
     },
     {
       title: "AWS Cloud Practitioner",
+      category: "Cloud",
       enrolled: 3200,
       duration: "6h",
       language: "English",
+      placeholderImage: "https://placehold.co/600x400",
     },
     {
-      title: "S3 & EC2 Masterclass",
-      enrolled: 2500,
-      duration: "5h 30m",
+      title: "Python for Data Science",
+      category: "Data Science",
+      enrolled: 5500,
+      duration: "10h 15m",
       language: "English",
+      placeholderImage: "https://placehold.co/600x400",
     },
     {
-      title: "Lambda & API Gateway",
-      enrolled: 2100,
-      duration: "4h 45m",
+      title: "Advanced React Patterns",
+      category: "Web",
+      enrolled: 2700,
+      duration: "7h",
       language: "English",
+      placeholderImage: "https://placehold.co/600x400",
     },
     {
-      title: "AWS DevOps Essentials",
-      enrolled: 3100,
-      duration: "7h 10m",
+      title: "SQL & Database Design",
+      category: "Database",
+      enrolled: 3300,
+      duration: "6h 10m",
       language: "English",
+      placeholderImage: "https://placehold.co/600x400",
+    },
+    {
+      title: "CSS Flexbox & Grid",
+      category: "Web",
+      enrolled: 1800,
+      duration: "3h 45m",
+      language: "English",
+      placeholderImage: "https://placehold.co/600x400",
+    },
+    {
+      title: "Docker Basics",
+      category: "DevOps",
+      enrolled: 1800,
+      duration: "4h",
+      language: "English",
+      placeholderImage: "https://placehold.co/600x400",
     },
   ];
 
-  const renderCourseCard = (course, index) => (
-    <div
-      key={index}
-      className="bg-white rounded-2xl transition-all duration-300 border  border-gray-200  hover:border-blue-500 overflow-hidden"
-    >
-      <img
-        src={placeholderImage}
-        alt={course.title}
-        className="w-full h-44 object-cover"
-      />
-      <div className="p-5">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          {course.title}
-        </h3>
-        <div className="flex items-center text-sm text-gray-500 gap-2 mb-1">
-          <Users size={16} className="text-blue-500" />
-          <span>{course.enrolled.toLocaleString()} enrolled</span>
-        </div>
-        <div className="flex justify-between text-sm text-gray-500 mt-3">
-          <div className="flex items-center gap-1">
-            <Clock size={15} className="text-blue-500" />
-            <span>{course.duration}</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Globe size={15} className="text-blue-500" />
-            <span>{course.language}</span>
-          </div>
-        </div>
-        <button className="mt-5 w-full py-2 rounded-md bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 transition font-medium text-sm shadow">
-          Enroll Now
-        </button>
-      </div>
-    </div>
-  );
+  const categories = [
+    "All",
+    "Web",
+    "Backend",
+    "Cloud",
+    "Data Science",
+    "Database",
+    "DevOps",
+  ];
+
+  const filteredCourses = allCourses.filter((course) => {
+    const matchesCategory =
+      selectedCategory === "All" || course.category === selectedCategory;
+    const matchesSearch = course.title
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
 
   return (
-    <div className="min-h-screen bg-gradient-to-b  pt-28 pb-20 px-4">
-      {/* Search Box */}
-      <div className="max-w-4xl mx-auto mb-16 sticky top-20 z-30  pt-5">
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search for a course..."
-          className="w-full px-6 py-4 border border-gray-300 rounded-xl text-lg text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none shadow-lg bg-gray-50"
-        />
-      </div>
-
-      {/* EPAM Courses */}
-      <div className="max-w-7xl mx-auto mb-20">
-        <div className="inline-block px-4 py-1 mb-6 border border-green-600 bg-green-50 text-green-700 rounded-2xl text-sm font-medium shadow-sm">
-           Self placed courses by EPAM
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 pb-28 px-4 pt-10">
+      {/* featured courses */}
+      <section className="max-w-7xl mx-auto mb-20">
+        <div className="inline-block px-4 py-1 mb-6 border border-green-600 bg-green-700 text-green-200 rounded-2xl text-sm font-medium shadow-sm">
+          🚀 Featured Courses
         </div>
         <Swiper
           modules={[Navigation]}
           navigation
+          pagination={{ clickable: true }}
+          scrollbar={{ draggable: true }}
           spaceBetween={24}
           breakpoints={{
             640: { slidesPerView: 1.2 },
@@ -176,45 +117,74 @@ const Content = () => {
             1280: { slidesPerView: 4.2 },
           }}
         >
-          {epamCourses
-            .filter((course) =>
-              course.title.toLowerCase().includes(searchQuery.toLowerCase())
-            )
-            .map((course, index) => (
-              <SwiperSlide key={index}>
-                {renderCourseCard(course, index)}
-              </SwiperSlide>
-            ))}
+          {allCourses.slice(0, 5).map((course, index) => (
+            <SwiperSlide key={index}>
+              <CourseCard course={course} index={index} />
+            </SwiperSlide>
+          ))}
         </Swiper>
-      </div>
+      </section>
 
-      {/* AWS Courses */}
-      <div className="max-w-7xl mx-auto">
-      <div className="inline-block px-4 py-1 mb-6 border border-green-600 bg-green-50 text-green-700 rounded-2xl text-sm font-medium shadow-sm">
-        Self placed courses by AWS
-        </div>
-        <Swiper
-          modules={[Navigation]}
-          navigation
-          spaceBetween={24}
-          breakpoints={{
-            640: { slidesPerView: 1.2 },
-            768: { slidesPerView: 2.2 },
-            1024: { slidesPerView: 3.2 },
-            1280: { slidesPerView: 4.2 },
-          }}
-        >
-          {awsCourses
-            .filter((course) =>
-              course.title.toLowerCase().includes(searchQuery.toLowerCase())
-            )
-            .map((course, index) => (
-              <SwiperSlide key={index}>
-                {renderCourseCard(course, index)}
-              </SwiperSlide>
+      {/* filter + search */}
+      <section className="max-w-7xl mx-auto mb-10 flex flex-wrap items-center gap-4 justify-between px-2">
+        <div className="flex items-center gap-2">
+          <Filter size={20} className="text-gray-400" />
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="px-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-gray-800 text-gray-300 shadow-sm"
+          >
+            {categories.map((cat, idx) => (
+              <option key={idx} value={cat}>
+                {cat}
+              </option>
             ))}
-        </Swiper>
-      </div>
+          </select>
+        </div>
+        <div className="relative w-full sm:w-72">
+          <input
+            type="text"
+            placeholder="Search courses..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-3 border border-gray-600 rounded-lg shadow-sm bg-gray-800 text-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none transition ease-in-out"
+          />
+          <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+              className="text-gray-500"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M10 4a6 6 0 0 1 0 12 6 6 0 0 1 0-12Zm0 0a6 6 0 0 0 0 12m4.5 2.5l4.5 4.5"
+              ></path>
+            </svg>
+          </div>
+        </div>
+      </section>
+
+      {/* all courses */}
+      <section className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {filteredCourses.length > 0 ? (
+          filteredCourses.map((course, index) =>
+            <CourseCard course={course} index={index}  />
+          )
+        ) : (
+          <div className="col-span-full text-center text-gray-400 mt-10">
+            No courses found. 🧐
+          </div>
+        )}
+      </section>
+
+      {/* navbar */}
+      <Navbar />
     </div>
   );
 };

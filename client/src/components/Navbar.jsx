@@ -1,93 +1,46 @@
-import { Link } from 'react-router-dom'
-import { useState } from 'react'
-import { Menu, X } from 'lucide-react';
+import { Home, BookOpen, Search, User, Youtube, AlertCircle, Book } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
 
 const Navbar = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(true)
-  const [menuOpen, setMenuOpen] = useState(false)
+  const location = useLocation();
 
-  const handleLogout = () => {
-    setIsLoggedIn(false)
-    setMenuOpen(false)
-  }
+  const navItems = [
+    { label: "Home", icon: Home, path: "/" },
+    { label: "My Courses", icon: BookOpen, path: "/courses" },
+    { label: "Youtube Links", icon: Youtube, path: "/ytlinks" },
+    { label: "Pdf Summary", icon: BookOpen, path: "/pdfsummary" },
+    { label: "Article", icon: Book, path: "/article" },
+  ];
 
   return (
-    <nav className="fixed top-0 left-0 w-full z-50 bg-white shadow-md border-b border-gray-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-        
-          <Link to="/" className="text-2xl font-extrabold text-blue-600 tracking-wide">
-            Vm.
+    <nav className="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-gray-800/80 backdrop-blur-md shadow-lg rounded-2xl px-6 py-2 flex justify-between items-center w-[90%] max-w-sm border border-gray-700 z-50">
+      {navItems.map((item, idx) => {
+        const isActive = location.pathname === item.path;
+        const Icon = item.icon;
+
+        return (
+          <Link
+            key={idx}
+            to={item.path}
+            className={`group flex flex-col items-center justify-center transition-all duration-200 ${
+              isActive ? "text-blue-400" : "text-gray-300 hover:text-blue-400"
+            }`}
+          >
+            <div
+              className={`p-2 rounded-full transition-all duration-300 ${
+                isActive
+                  ? "bg-gradient-to-br from-blue-400 to-blue-600 text-white shadow-md scale-105"
+                  : "hover:bg-blue-100 hover:scale-105 active:scale-95"
+              }`}
+            >
+              <Icon size={20} className="group-hover:animate-bounce-slow" />
+            </div>
+            <span className="text-[10px] font-medium">{item.label}</span>
           </Link>
-
-          <div className="hidden md:flex items-center space-x-6">
-            {!isLoggedIn ? (
-              <>
-                <Link
-                  to="/login"
-                  className="px-6 py-2 rounded-md text-blue-600 hover:text-blue-700 bg-blue-100 hover:bg-blue-200 transition-colors ease-in-out duration-200 font-medium"
-                >
-                  Sign In
-                </Link>
-                <Link
-                  to="/register"
-                  className="px-6 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors ease-in-out duration-200 font-medium"
-                >
-                  Register
-                </Link>
-              </>
-            ) : (
-              <button
-                onClick={handleLogout}
-                className="px-6 py-2 rounded-md bg-red-500 text-white hover:bg-red-600 transition-colors ease-in-out duration-200 font-medium"
-              >
-                Logout
-              </button>
-            )}
-          </div>
-
-          <div className="md:hidden flex items-center">
-            <button
-              onClick={() => setMenuOpen(!menuOpen)}
-              className="text-gray-700 hover:text-blue-600 transition-colors ease-in-out duration-200"
-            >
-              {menuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {menuOpen && (
-        <div className="md:hidden px-4 pb-4 space-y-3">
-          {!isLoggedIn ? (
-            <>
-              <Link
-                to="/login"
-                onClick={() => setMenuOpen(false)}
-                className="block px-6 py-2 rounded-md text-blue-600 hover:text-blue-700 bg-blue-100 hover:bg-blue-200 transition-colors ease-in-out duration-200 font-medium"
-              >
-                Sign In
-              </Link>
-              <Link
-                to="/register"
-                onClick={() => setMenuOpen(false)}
-                className="block px-6 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors ease-in-out duration-200 font-medium"
-              >
-                Register
-              </Link>
-            </>
-          ) : (
-            <button
-              onClick={handleLogout}
-              className="w-full text-left px-6 py-2 rounded-md bg-red-500 text-white hover:bg-red-600 transition-colors ease-in-out duration-200 font-medium"
-            >
-              Logout
-            </button>
-          )}
-        </div>
-      )}
+        );
+      })}
     </nav>
-  )
-}
+  );
+};
 
-export default Navbar
+export default Navbar;
