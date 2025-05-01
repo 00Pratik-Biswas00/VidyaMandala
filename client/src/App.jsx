@@ -19,6 +19,7 @@ function App() {
         <Route path="/single-course" element={<SingleCourse/>}/>
         <Route path="/yt-notes-generation" element={<YtNotesGeneration/>}/>
         <Route path="/article-qNa" element={<ArticleSummary/>}/>
+        <Route path="/details" element={<SingleCourse/>}/>
       </Routes>
     </BrowserRouter>
   );
