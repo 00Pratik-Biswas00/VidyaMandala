@@ -4,3 +4,10 @@ transformers
 torch
 sentence-transformers
 flask_cors
+
+langchain
+langchain-google-genai
+beautifulsoup4
+python-dotenv
+streamlit
+readability-lxml
