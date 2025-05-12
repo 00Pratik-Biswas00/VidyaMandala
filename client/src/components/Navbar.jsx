@@ -7,9 +7,9 @@ const Navbar = () => {
   const navItems = [
     { label: "Home", icon: Home, path: "/" },
     { label: "My Courses", icon: BookOpen, path: "/courses" },
-    { label: "Youtube Links", icon: Youtube, path: "/ytlinks" },
-    { label: "Pdf Summary", icon: BookOpen, path: "/pdfsummary" },
-    { label: "Article", icon: Book, path: "/article" },
+    // { label: "Youtube Links", icon: Youtube, path: "/ytlinks" },
+    { label: "Pdf Summary", icon: BookOpen, path: "/pdf-summary-qNa" },
+    { label: "Article", icon: Book, path: "/article-qNa" },
   ];
 
   return (
