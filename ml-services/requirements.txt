@@ -1,0 +1,6 @@
+Flask
+newspaper3k
+transformers
+torch
+sentence-transformers
+flask_cors
