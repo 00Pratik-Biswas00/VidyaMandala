@@ -1,55 +1,141 @@
-# Flask API (serve endpoints)
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+import google.generativeai as genai
+import traceback
+from newspaper import Article
 
 import os
-from flask import Flask, request, jsonify, session
-from flask_cors import CORS
-from scraper import scrape_article
-from question_generator import generate_questions
-from answer_evaluator import evaluate_answer
+from dotenv import load_dotenv
+load_dotenv()
 
+# Configure Flask and CORS
 app = Flask(__name__)
-app.secret_key = os.environ.get("FLASK_SECRET_KEY", "fallback-dev-key")  # for session
 CORS(app)
 
-@app.route('/start', methods=['POST'])
-def start_session():
-    url = request.json.get('url')
-    article = scrape_article(url)
-    questions = generate_questions(article)
-    
-    session['questions'] = questions
-    session['current_index'] = 0
-    return jsonify({"message": "Session started", "total_questions": len(questions)})
+# Configure Gemini API
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+genai.configure(api_key=GEMINI_API_KEY)
+model = genai.GenerativeModel("gemini-pro")
 
-@app.route('/next-question', methods=['GET'])
-def next_question():
-    index = session.get('current_index', 0)
-    questions = session.get('questions', [])
-    
-    if index >= len(questions):
-        return jsonify({"done": True, "message": "All questions completed."})
-    
-    return jsonify({"done": False, "question": questions[index]["question"], "id": questions[index]["id"]})
+# In-memory session store
+session_data = {
+    "context": "",
+    "summary": "",
+    "questions": [],
+    "current_index": 0,
+    "current_question": ""
+}
 
-@app.route('/submit-answer', methods=['POST'])
-def submit_answer():
-    user_answer = request.json.get('answer')
-    index = session.get('current_index', 0)
-    questions = session.get('questions', [])
+# Helper to extract text from article
+def get_article_text(url):
+    article = Article(url)
+    article.download()
+    article.parse()
+    return article.text
 
-    if index >= len(questions):
-        return jsonify({"done": True, "message": "No more questions."})
-    
-    expected = questions[index]['expected_answer']
-    feedback = evaluate_answer(user_answer, expected)
+# Route to start interaction and generate the first question
+@app.route("/start", methods=["POST"])
+def start():
+    try:
+        data = request.json
+        url = data.get("url")
+        if not url:
+            return jsonify({"error": "URL not provided"}), 400
 
-    # Move to next question
-    session['current_index'] = index + 1
-    
-    return jsonify({
-        "feedback": feedback,
-        "next": index + 1 < len(questions)
-    })
+        print("[INFO] Received article URL:", url)
+        text = get_article_text(url)
 
+        prompt = f"""
+        Please summarize the following article:
+        \"\"\"{text[:4000]}\"\"\"
+
+        Then, generate 5 questions (one at a time) to test understanding.
+        Now, just provide the first question only.
+        """
+
+        response = model.generate_content(prompt)
+        print("[INFO] Gemini response:", response.text)
+
+        # Save session data
+        session_data["context"] = text[:4000]
+        session_data["summary"] = ""  # Could be stored from a separate summary if needed
+        session_data["questions"] = [response.text]
+        session_data["current_index"] = 0
+        session_data["current_question"] = response.text
+
+        return jsonify({"question": response.text})
+
+    except Exception as e:
+        print("[ERROR]", str(e))
+        traceback.print_exc()
+        return jsonify({"error": "Something went wrong"}), 500
+
+# Evaluate the answer and return feedback and next question
+@app.route('/answer', methods=['POST'])
+def answer():
+    try:
+        data = request.get_json()
+        user_answer = data.get('answer')
+
+        if not user_answer:
+            return jsonify({"error": "Answer required"}), 400
+
+        question = session_data.get("current_question")
+        context_text = session_data.get("context")
+
+        feedback = evaluate_answer(context_text, question, user_answer)
+        next_question = generate_question()
+
+        return jsonify({
+            "feedback": feedback,
+            "next_question": next_question
+        })
+
+    except Exception as e:
+        print("[ERROR]", str(e))
+        traceback.print_exc()
+        return jsonify({"error": "Something went wrong"}), 500
+
+# Helper to evaluate the user's answer
+def evaluate_answer(article_text, question, user_answer):
+    prompt = f"""
+    Based on this article:
+    \"\"\"{article_text[:4000]}\"\"\"
+
+    The question was: {question}
+    The user's answer was: {user_answer}
+
+    Give clear and constructive feedback: Is it correct, partially correct, or incorrect? Why?
+    """
+    response = model.generate_content(prompt)
+    return response.text.strip()
+
+# Helper to generate the next question
+def generate_question():
+    session_data["current_index"] += 1
+    index = session_data["current_index"]
+
+    if index >= 5:
+        return "You’ve completed all the questions. Great job!"
+
+    prev_questions = session_data["questions"]
+    article_text = session_data["context"]
+
+    prompt = f"""
+    Based on this article:
+    \"\"\"{article_text[:4000]}\"\"\"
+
+    You have already asked these questions:
+    {prev_questions}
+
+    Now generate question number {index + 1} to test the user's understanding.
+    """
+    response = model.generate_content(prompt)
+    session_data["questions"].append(response.text)
+    session_data["current_question"] = response.text
+
+    return response.text.strip()
+
+# Run the Flask app
 if __name__ == '__main__':
     app.run(port=8000, debug=True)
