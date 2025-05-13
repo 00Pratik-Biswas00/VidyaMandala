@@ -8,6 +8,7 @@ import ArticleSummary from "./pages/ArticleSummary";
 import SingleCourse from "./pages/SingleCourse";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+
 function App() {
   return (
     <BrowserRouter>
@@ -16,10 +17,9 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/pdf-summary-qNa" element={<PdfSummary/>}/>
-        <Route path="/single-course" element={<SingleCourse/>}/>
         <Route path="/yt-notes-generation" element={<YtNotesGeneration/>}/>
         <Route path="/article-qNa" element={<ArticleSummary/>}/>
-        <Route path="/details" element={<SingleCourse/>}/>
+        <Route path="/details/:title" element={<SingleCourse/>}/>
       </Routes>
     </BrowserRouter>
   );

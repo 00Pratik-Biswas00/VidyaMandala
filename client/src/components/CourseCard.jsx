@@ -27,7 +27,7 @@ const CourseCard = ({ course, index }) => (
           <span>{course.language}</span>
         </div>
       </div>
-      <Link to={"/details"}>
+      <Link to={`/details/${course.title}`} >
         <button className="mt-4 w-full py-2 rounded-md bg-gradient-to-r from-blue-400 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 transition font-medium text-sm shadow-md">
           Enroll Now
         </button>

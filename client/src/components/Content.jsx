@@ -6,77 +6,11 @@ import "swiper/css";
 import "swiper/css/navigation";
 import Navbar from "./Navbar"; 
 import CourseCard from "./CourseCard";
+import AllCourses from "../assets/AllCourses";
 
 const Content = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
-
-  const allCourses = [
-    {
-      title: "React for Beginners",
-      category: "Web",
-      enrolled: 4200,
-      duration: "6h 30m",
-      language: "English",
-      placeholderImage: "https://placehold.co/600x400",
-    },
-    {
-      title: "Node.js Crash Course",
-      category: "Backend",
-      enrolled: 2900,
-      duration: "5h",
-      language: "English",
-      placeholderImage: "https://placehold.co/600x400",
-    },
-    {
-      title: "AWS Cloud Practitioner",
-      category: "Cloud",
-      enrolled: 3200,
-      duration: "6h",
-      language: "English",
-      placeholderImage: "https://placehold.co/600x400",
-    },
-    {
-      title: "Python for Data Science",
-      category: "Data Science",
-      enrolled: 5500,
-      duration: "10h 15m",
-      language: "English",
-      placeholderImage: "https://placehold.co/600x400",
-    },
-    {
-      title: "Advanced React Patterns",
-      category: "Web",
-      enrolled: 2700,
-      duration: "7h",
-      language: "English",
-      placeholderImage: "https://placehold.co/600x400",
-    },
-    {
-      title: "SQL & Database Design",
-      category: "Database",
-      enrolled: 3300,
-      duration: "6h 10m",
-      language: "English",
-      placeholderImage: "https://placehold.co/600x400",
-    },
-    {
-      title: "CSS Flexbox & Grid",
-      category: "Web",
-      enrolled: 1800,
-      duration: "3h 45m",
-      language: "English",
-      placeholderImage: "https://placehold.co/600x400",
-    },
-    {
-      title: "Docker Basics",
-      category: "DevOps",
-      enrolled: 1800,
-      duration: "4h",
-      language: "English",
-      placeholderImage: "https://placehold.co/600x400",
-    },
-  ];
 
   const categories = [
     "All",
@@ -88,7 +22,7 @@ const Content = () => {
     "DevOps",
   ];
 
-  const filteredCourses = allCourses.filter((course) => {
+  const filteredCourses = AllCourses.filter((course) => {
     const matchesCategory =
       selectedCategory === "All" || course.category === selectedCategory;
     const matchesSearch = course.title
@@ -117,7 +51,7 @@ const Content = () => {
             1280: { slidesPerView: 4.2 },
           }}
         >
-          {allCourses.slice(0, 5).map((course, index) => (
+          {AllCourses.slice(0, 5).map((course, index) => (
             <SwiperSlide key={index}>
               <CourseCard course={course} index={index} />
             </SwiperSlide>
