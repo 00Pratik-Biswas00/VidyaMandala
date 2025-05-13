@@ -1,24 +1,25 @@
 import React, { useState } from "react";
 import axios from "axios";
+import Navbar from "../components/Navbar";
 
 const ArticleSummary = () => {
   const [url, setUrl] = useState("");
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [feedback, setFeedback] = useState("");
-  const [loading, setLoading] = useState(false);  // New state for loading
+  const [loading, setLoading] = useState(false); // New state for loading
 
   const handleSubmit = async () => {
-    setLoading(true);  // Start loading state
+    setLoading(true); // Start loading state
     try {
       const res = await axios.post("http://localhost:8000/start", { url });
       setQuestion(res.data.question);
-      setFeedback("");  // Reset feedback when new question is fetched
+      setFeedback(""); // Reset feedback when new question is fetched
     } catch (err) {
       console.error(err);
       alert("Something went wrong. Please try again.");
     }
-    setLoading(false);  // End loading state
+    setLoading(false); // End loading state
   };
 
   const handleAnswerSubmit = async () => {
@@ -26,38 +27,40 @@ const ArticleSummary = () => {
       alert("Please provide an answer.");
       return;
     }
-    
-    setLoading(true);  // Start loading state
+
+    setLoading(true); // Start loading state
     try {
       const res = await axios.post("http://localhost:8000/answer", { answer });
       setFeedback(res.data.feedback);
       setQuestion(res.data.next_question);
-      setAnswer("");  // Reset the answer field after submission
+      setAnswer(""); // Reset the answer field after submission
     } catch (err) {
       console.error(err);
       alert("Something went wrong. Please try again.");
     }
-    setLoading(false);  // End loading state
+    setLoading(false); // End loading state
   };
 
   return (
-    <section className="flex flex-col items-center justify-center h-screen bg-black text-white p-4">
-      <h1 className="text-2xl font-bold mb-4">Article Tutor</h1>
+    <section className="flex flex-col items-center  h-screen bg-gradient-to-b from-blue-950 to-black text-white p-10">
+      <h1 className="text-5xl font-bold mb-10 font-montserrat">
+        Article Tutor
+      </h1>
 
-      <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md mb-6">
+      <div className="flex flex-col  sm:flex-row gap-4 w-full max-w-2xl mb-10">
         <input
           type="text"
           placeholder="Enter article link"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
-          className="px-4 py-2 text-black rounded-md w-full focus:outline-none"
+          className="px-4 py-2 text-black bg-gray-200 font-mono rounded-md w-full focus:outline-none"
         />
         <button
           onClick={handleSubmit}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
-          disabled={loading}  // Disable button while loading
+          className="bg-blue-600 hover:bg-blue-700 font-ubuntu font-semibold  text-white px-1 py-2 rounded-md  w-1/2"
+          disabled={loading} // Disable button while loading
         >
-          {loading ? "Loading..." : "Submit"}
+          {loading ? "Loading..." : "Generate QnA"}
         </button>
       </div>
 
@@ -80,7 +83,7 @@ const ArticleSummary = () => {
           <button
             onClick={handleAnswerSubmit}
             className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md"
-            disabled={loading}  // Disable button while loading
+            disabled={loading} // Disable button while loading
           >
             {loading ? "Loading..." : "Submit Answer"}
           </button>
@@ -93,6 +96,8 @@ const ArticleSummary = () => {
           <p>{feedback}</p>
         </div>
       )}
+
+      <Navbar />
     </section>
   );
 };
