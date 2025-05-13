@@ -8,90 +8,26 @@ import {
   ChevronRight,
   AirVent,
 } from "lucide-react";
+import { useParams } from "react-router-dom";
+import AllCourses from "../assets/AllCourses";
 
 const SingleCourse = () => {
-  const [topics, setTopics] = useState([
-    {
-      id: "section1",
-      title: "Introduction to Java",
-      duration: "20min",
-      completed: true,
-    },
-    {
-      id: "section2",
-      title: "OOP Concepts",
-      duration: "40min",
-      completed: false,
-    },
-    {
-      id: "section3",
-      title: "Java Collections Framework",
-      duration: "45min",
-      completed: false,
-    },
-    {
-      id: "section4",
-      title: "Functional Programming in Java",
-      duration: "35min",
-      completed: false,
-    },
-    {
-      id: "section5",
-      title: "Error Handling and Exceptions",
-      duration: "30min",
-      completed: false,
-    },
-    {
-      id: "section6",
-      title: "Multithreading and Concurrency",
-      duration: "50min",
-      completed: false,
-    },
-    {
-      id: "section7",
-      title: "Java I/O and File Handling",
-      duration: "30min",
-      completed: false,
-    },
-    {
-      id: "section8",
-      title: "Working with Databases (JDBC)",
-      duration: "40min",
-      completed: false,
-    },
-    {
-      id: "section9",
-      title: "Java Streams API",
-      duration: "35min",
-      completed: false,
-    },
-    {
-      id: "section10",
-      title: "Java 17 Features Overview",
-      duration: "25min",
-      completed: false,
-    },
-    {
-      id: "section11",
-      title: "Building REST APIs with Spring Boot",
-      duration: "50min",
-      completed: false,
-    },
-    {
-      id: "section12",
-      title: "Testing in Java with JUnit",
-      duration: "30min",
-      completed: false,
-    },
-    {
-      id: "section13",
-      title: "Deploying Java Applications",
-      duration: "40min",
-      completed: false,
-    },
-  ]);
+  const { title } = useParams();
+  const course = AllCourses.find((course) => course.title === title);
 
+  const [topics, setTopics] = useState([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  useEffect(() => {
+    if (course && course.topics) {
+      // Initialize with completed = false
+      const initialTopics = course.topics.map((topic) => ({
+        ...topic,
+        completed: false,
+      }));
+      setTopics(initialTopics);
+    }
+  }, [course]);
 
   const scrollToSection = (id) => {
     const section = document.getElementById(id);
@@ -109,6 +45,14 @@ const SingleCourse = () => {
   };
 
   const completedCount = topics.filter((t) => t.completed).length;
+
+  if (!course) {
+    return (
+      <div className="text-white text-center mt-20 text-2xl">
+        Course not found.
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-950 text-white font-sans">
@@ -149,7 +93,7 @@ const SingleCourse = () => {
                 <div
                   className="h-full bg-green-500 transition-all duration-300"
                   style={{
-                    width: `${(completedCount / topics.length) * 100}%`,
+                    width: `${(completedCount / topics.length) * 100 || 0}%`,
                   }}
                 />
               </div>
@@ -204,11 +148,9 @@ const SingleCourse = () => {
           </nav>
         </aside>
 
-        {/* Main content */}
+        {/* Main Content */}
         <main
-          className={`flex-1 transition-all ml-${
-            sidebarOpen ? "64" : "16"
-          } p-6 sm:p-12 space-y-10 bg-gray-950`}
+          className={`flex-1 transition-all p-6 sm:p-12 space-y-10 bg-gray-950`}
           style={{ marginLeft: sidebarOpen ? "16rem" : "4rem" }}
         >
           {topics.map((topic) => (
@@ -370,7 +312,6 @@ const SingleCourse = () => {
               </div>
             </div>
 
-            
             <div className="flex flex-col items-end gap-2 border-t border-gray-800 pt-4 w-full">
               <button className="px-6 py-2 text-sm font-semibold rounded-full bg-yellow-600 text-white hover:bg-yellow-700 transition-all duration-300 mt-2">
                 Start Mock Interview
@@ -380,6 +321,7 @@ const SingleCourse = () => {
         </main>
       </div>
 
+      {/* Scrollbar styling */}
       <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar {
           width: 8px;
