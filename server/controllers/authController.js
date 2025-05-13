@@ -2,6 +2,7 @@ const User = require('../models/User');
 const { STATUSCODE } = require('../constants');
 const { createCustomError } = require('../utils/errorHandler');
 const { sendResponse } = require('../utils/responseHandler');
+const BlacklistedToken = require('../models/BlacklistedToken');
 
 // Register a new user
 const register = async (req, res, next) => {
@@ -47,8 +48,9 @@ const login = async (req, res, next) => {
       return next(createCustomError('Invalid credentials', STATUSCODE.UNAUTHORIZED));
     }
 
-    // Compare password
+    // Check if password matches
     const isPasswordCorrect = await user.comparePassword(password);
+    
     if (!isPasswordCorrect) {
       return next(createCustomError('Invalid credentials', STATUSCODE.UNAUTHORIZED));
     }
@@ -56,16 +58,18 @@ const login = async (req, res, next) => {
     // Create token
     const token = user.createJWT();
 
-    // Send response
-    sendResponse(res, STATUSCODE.SUCCESS, {
+    // Return user and token
+    sendResponse(res, STATUSCODE.SUCCESS, { 
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
+        role: user.role,
       },
-      token,
+      token 
     });
   } catch (error) {
+    console.error('Login error:', error);
     next(error);
   }
 };
@@ -85,18 +89,18 @@ const getCurrentUser = async (req, res, next) => {
   }
 };
 
-const logout = async (req, res) => {
+const logout = async (req, res, next) => {
     try {
-        const authHeader = req.headers.authorization;
-        const token = authHeader.split(' ')[1];
-        
-        // Add the token to the blacklist
-        await BlacklistedToken.create({ token });
-        
-        res.status(StatusCodes.OK).json({ msg: 'User logged out successfully!' });
-      } catch (error) {
-        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ msg: 'Logout failed' });
-      }
+      const authHeader = req.headers.authorization;
+      const token = authHeader.split(' ')[1];
+      
+      // Add the token to the blacklist
+      await BlacklistedToken.create({ token });
+      
+      sendResponse(res, STATUSCODE.SUCCESS, { message: 'User logged out successfully!' });
+    } catch (error) {
+      next(error);
+    }
   };
 
 module.exports = {

@@ -44,7 +44,7 @@ UserSchema.pre('save', async function() {
 // Create JWT token
 UserSchema.methods.createJWT = function() {
   return jwt.sign(
-    { userId: this._id, name: this.name, role: this.role },
+    { userId: this._id, name: this.name, role: this.role || 'user' },
     process.env.JWT_SECRET,
     {
       expiresIn: process.env.JWT_EXPIRY,
@@ -54,8 +54,7 @@ UserSchema.methods.createJWT = function() {
 
 // Compare password
 UserSchema.methods.comparePassword = async function(candidatePassword) {
-  const isMatch = await bcrypt.compare(candidatePassword, this.password);
-  return isMatch;
+  return await bcrypt.compare(candidatePassword, this.password);
 };
 
 module.exports = mongoose.model('User', UserSchema);

@@ -14,7 +14,13 @@ const app = express();
 
 // Security middleware
 app.use(helmet());
-app.use(cors());
+app.use(cors(
+  {
+    origin: 'http://localhost:5173',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true,
+  }
+));
 app.use(
   rateLimiter({
     windowMs: 15 * 60 * 1000, // 15 minutes

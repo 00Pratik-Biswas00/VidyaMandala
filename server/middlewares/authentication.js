@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const { STATUSCODE } = require('../constants');
 const { createCustomError } = require('../utils/errorHandler');
+const BlacklistedToken = require('../models/BlacklistedToken');
 
 const authenticationMiddleware = async (req, res, next) => {
   // Get token from header
@@ -14,7 +15,7 @@ const authenticationMiddleware = async (req, res, next) => {
 
   const isBlacklisted = await BlacklistedToken.findOne({ token });
   if (isBlacklisted) {
-    throw new UnauthenticatedError('Token revoked');
+    return next(createCustomError('Token revoked', STATUSCODE.UNAUTHORIZED));
   }
 
   try {
