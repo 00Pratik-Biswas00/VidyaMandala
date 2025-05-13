@@ -9,11 +9,13 @@ import SingleCourse from "./pages/SingleCourse";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import BlockDiagramGenerator from "./pages/BlockDiagramGenerator";
+import ProtectedRoute from "./components/ProtectedRoute";
+
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Home />} />
+      <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/pdf-summary-qNa" element={<PdfSummary />} />
@@ -25,6 +27,46 @@ function App() {
           element={<BlockDiagramGenerator />}
         />
         <Route path="/details" element={<SingleCourse />} />
+        <Route 
+          path="/pdf-summary-qNa" 
+          element={
+            <ProtectedRoute>
+              <PdfSummary/>
+            </ProtectedRoute>
+          }
+        />
+        <Route 
+          path="/single-course" 
+          element={
+            <ProtectedRoute>
+              <SingleCourse/>
+            </ProtectedRoute>
+          }
+        />
+        <Route 
+          path="/yt-notes-generation" 
+          element={
+            <ProtectedRoute>
+              <YtNotesGeneration/>
+            </ProtectedRoute>
+          }
+        />
+        <Route 
+          path="/article-qNa" 
+          element={
+            <ProtectedRoute>
+              <ArticleSummary/>
+            </ProtectedRoute>
+          }
+        />
+        <Route 
+          path="/details/:title" 
+          element={
+            <ProtectedRoute>
+              <SingleCourse/>
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </BrowserRouter>
   );

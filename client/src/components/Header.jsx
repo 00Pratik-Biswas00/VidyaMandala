@@ -1,14 +1,49 @@
 import { Link } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
+import { authService } from '../services/authService';
 
 const Header = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // Default to false
   const [menuOpen, setMenuOpen] = useState(false);
+  const [user, setUser] = useState(null);
 
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-    setMenuOpen(false);
+  useEffect(() => {
+    // Check authentication status when component mounts
+    const checkAuthStatus = () => {
+      const loggedIn = authService.isLoggedIn();
+      setIsLoggedIn(loggedIn);
+      
+      if (loggedIn) {
+        setUser(authService.getUser());
+      }
+    };
+    
+    checkAuthStatus();
+    
+    // You could add an event listener to listen for auth changes
+    window.addEventListener('storage', (event) => {
+      if (event.key === 'token') {
+        checkAuthStatus();
+      }
+    });
+    
+    return () => {
+      window.removeEventListener('storage', checkAuthStatus);
+    };
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await authService.logout();
+      setIsLoggedIn(false);
+      setUser(null);
+      setMenuOpen(false);
+      // Optional: Redirect to home or login page
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
   };
 
   return (
@@ -36,12 +71,15 @@ const Header = () => {
                 </Link>
               </>
             ) : (
-              <button
-                onClick={handleLogout}
-                className="px-6 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors ease-in-out duration-200 font-medium"
-              >
-                Logout
-              </button>
+              <>
+                {user && <span className="text-gray-300 mr-2">Welcome, {user.name}</span>}
+                <button
+                  onClick={handleLogout}
+                  className="px-6 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors ease-in-out duration-200 font-medium"
+                >
+                  Logout
+                </button>
+              </>
             )}
           </div>
 
@@ -76,12 +114,15 @@ const Header = () => {
               </Link>
             </>
           ) : (
-            <button
-              onClick={handleLogout}
-              className="w-full text-left px-6 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors ease-in-out duration-200 font-medium"
-            >
-              Logout
-            </button>
+            <>
+              {user && <span className="block px-6 py-2 text-gray-300">Welcome, {user.name}</span>}
+              <button
+                onClick={handleLogout}
+                className="w-full text-left px-6 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors ease-in-out duration-200 font-medium"
+              >
+                Logout
+              </button>
+            </>
           )}
         </div>
       )}

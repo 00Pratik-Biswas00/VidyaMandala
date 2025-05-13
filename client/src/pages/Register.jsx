@@ -1,16 +1,28 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { authService } from '../services/authService'
 
 const Register = () => {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    console.log('Registering:', { name, email, password })
-    navigate('/')
+    setError('')
+    setLoading(true)
+    
+    try {
+      await authService.register({ name, email, password })
+      navigate('/')
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to register')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -21,6 +33,12 @@ const Register = () => {
           <p className="mt-2 text-sm text-gray-400">Sign up to get started</p>
         </div>
 
+        {error && (
+          <div className="bg-red-900/30 border border-red-500 text-red-200 px-4 py-2 rounded-lg text-sm">
+            {error}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <label className="block mb-1 text-sm font-medium text-gray-300">Full Name</label>
@@ -30,7 +48,7 @@ const Register = () => {
               onChange={(e) => setName(e.target.value)}
               required
               placeholder="John Doe"
-              className="w-full px-4 py-2.5 border border-gray-600 rounded-lg text-gray-100 focus:ring-2 focus:ring-blue-500 focus:outline-none transition glow-input"
+              className="w-full px-4 py-2.5 border border-gray-600 rounded-lg bg-white text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:outline-none transition glow-input"
             />
           </div>
 
@@ -42,7 +60,7 @@ const Register = () => {
               onChange={(e) => setEmail(e.target.value)}
               required
               placeholder="you@example.com"
-              className="w-full px-4 py-2.5 border border-gray-600 rounded-lg text-gray-100 focus:ring-2 focus:ring-blue-500 focus:outline-none transition glow-input"
+              className="w-full px-4 py-2.5 border border-gray-600 rounded-lg bg-white text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:outline-none transition glow-input"
             />
           </div>
 
@@ -54,15 +72,16 @@ const Register = () => {
               onChange={(e) => setPassword(e.target.value)}
               required
               placeholder="••••••••"
-              className="w-full px-4 py-2.5 border border-gray-600 rounded-lg text-gray-100 focus:ring-2 focus:ring-blue-500 focus:outline-none transition glow-input"
+              className="w-full px-4 py-2.5 border border-gray-600 rounded-lg bg-white text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:outline-none transition glow-input"
             />
           </div>
 
           <button
             type="submit"
-            className="w-full py-3 text-white bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition glow-button"
+            disabled={loading}
+            className="w-full py-3 text-white bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition glow-button disabled:opacity-50"
           >
-            Register
+            {loading ? 'Creating Account...' : 'Register'}
           </button>
         </form>
 
