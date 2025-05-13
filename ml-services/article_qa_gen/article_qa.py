@@ -82,12 +82,13 @@ async def run_quiz_flow(article_url):
     
     # Generate initial questions
     questions = await question_gen_chain.ainvoke({"article_summary": summary, "num_questions": 5})
+
     questions_list = [q.strip() for q in questions.split('\n') if q.strip()]
-    
+    # print(f"INITIAL QUESTION: {questions_list}")
     interaction_history = []
     continue_quiz = True
     
-    while continue_quiz and questions_list:
+    while continue_quiz and len(questions_list)>1:
         # Select question
         selected_question = await question_select_chain.ainvoke('\n'.join(questions_list))
         
@@ -110,8 +111,8 @@ async def run_quiz_flow(article_url):
         })
         
         # Remove used question
-        questions_list = [q for q in questions_list if q != selected_question]
-        
+        questions_list = [q for q in questions_list if selected_question not in q]
+        print(questions_list)
         # Check if user wants to continue
         continue_input = input("\nContinue? (yes/no): ").lower()
         continue_quiz = continue_input.startswith('y')
