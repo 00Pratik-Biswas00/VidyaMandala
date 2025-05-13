@@ -15,55 +15,63 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-      <Route path="/" element={<Home />} />
+        <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/pdf-summary-qNa" element={<PdfSummary />} />
-        <Route path="/single-course" element={<SingleCourse />} />
-        <Route path="/yt-notes-generation" element={<YtNotesGeneration />} />
-        <Route path="/article-qNa" element={<ArticleSummary />} />
-        <Route
+        {/* <Route path="/pdf-summary-qNa" element={<PdfSummary />} /> */}
+        {/* <Route path="/single-course" element={<SingleCourse />} /> */}
+        {/* <Route path="/yt-notes-generation" element={<YtNotesGeneration />} /> */}
+        {/* <Route path="/article-qNa" element={<ArticleSummary />} /> */}
+        {/* <Route
           path="/block-diagram-generator"
           element={<BlockDiagramGenerator />}
-        />
-        <Route path="/details" element={<SingleCourse />} />
-        <Route 
-          path="/pdf-summary-qNa" 
+        /> */}
+        {/* <Route path="/details" element={<SingleCourse />} /> */}
+        <Route
+          path="/pdf-summary-qNa"
           element={
             <ProtectedRoute>
-              <PdfSummary/>
+              <PdfSummary />
             </ProtectedRoute>
           }
         />
-        <Route 
-          path="/single-course" 
+        <Route
+          path="/single-course"
           element={
             <ProtectedRoute>
-              <SingleCourse/>
+              <SingleCourse />
             </ProtectedRoute>
           }
         />
-        <Route 
+        {/* <Route 
           path="/yt-notes-generation" 
           element={
             <ProtectedRoute>
               <YtNotesGeneration/>
             </ProtectedRoute>
           }
-        />
-        <Route 
-          path="/article-qNa" 
+        /> */}
+        <Route
+          path="/article-qNa"
           element={
             <ProtectedRoute>
-              <ArticleSummary/>
+              <ArticleSummary />
             </ProtectedRoute>
           }
         />
-        <Route 
-          path="/details/:title" 
+        <Route
+          path="/block-diagram-generator"
           element={
             <ProtectedRoute>
-              <SingleCourse/>
+              <BlockDiagramGenerator />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/details/:title"
+          element={
+            <ProtectedRoute>
+              <SingleCourse />
             </ProtectedRoute>
           }
         />
