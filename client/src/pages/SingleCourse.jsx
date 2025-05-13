@@ -8,7 +8,7 @@ import {
   ChevronRight,
   AirVent,
 } from "lucide-react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import AllCourses from "../assets/AllCourses";
 
 const SingleCourse = () => {
@@ -58,6 +58,14 @@ const SingleCourse = () => {
     <div className="flex flex-col min-h-screen bg-gray-950 text-white font-sans">
       {/* Navbar */}
       <header className="flex items-center justify-end bg-gray-900 border-b border-gray-800 p-4 sticky top-0 z-20">
+        <div className="flex items-center gap-4 mr-auto">
+          <Link
+            to="/"
+            className="text-2xl font-extrabold text-blue-400 tracking-wide"
+          >
+            Vm.
+          </Link>
+        </div>
         <button className="flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-all">
           Daily Plan Generator
           <AirVent size={16} />

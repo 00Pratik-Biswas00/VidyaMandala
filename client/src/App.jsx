@@ -49,7 +49,7 @@ function App() {
           }
         />
         <Route 
-          path="/details" 
+          path="/details/:title" 
           element={
             <ProtectedRoute>
               <SingleCourse/>
