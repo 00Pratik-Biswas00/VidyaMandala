@@ -1,4 +1,12 @@
-import { Home, BookOpen, Search, User, Youtube, AlertCircle, Book } from "lucide-react";
+import {
+  Home,
+  BookOpen,
+  Search,
+  User,
+  Youtube,
+  AlertCircle,
+  Book,
+} from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
 const Navbar = () => {
@@ -8,8 +16,9 @@ const Navbar = () => {
     { label: "Home", icon: Home, path: "/" },
     { label: "My Courses", icon: BookOpen, path: "/courses" },
     // { label: "Youtube Links", icon: Youtube, path: "/ytlinks" },
-    { label: "Pdf Summary", icon: BookOpen, path: "/pdf-summary-qNa" },
-    { label: "Article", icon: Book, path: "/article-qNa" },
+    { label: "Pdf QnA", icon: BookOpen, path: "/pdf-summary-qNa" },
+    { label: "Article QnA", icon: Book, path: "/article-qNa" },
+    { label: " Gen Diagram", icon: Book, path: "/block-diagram-generator" },
   ];
 
   return (
