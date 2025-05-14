@@ -136,6 +136,13 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
+
 # python virtual env
 .venv
 __pycache__
+.idx
+
+
+# pdf and png
+*.pdf
+*.png
