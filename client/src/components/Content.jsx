@@ -4,7 +4,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
-import Navbar from "./Navbar"; 
+import Navbar from "./Navbar";
 import CourseCard from "./CourseCard";
 import { courseService } from "../services/courseService";
 
@@ -31,7 +31,6 @@ const Content = () => {
 
     fetchCourses();
   }, []);
-
 
   const categories = [
     "All",
@@ -82,7 +81,6 @@ const Content = () => {
     );
   }
 
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 pb-28 px-4 pt-10">
       {/* featured courses */}
@@ -116,12 +114,16 @@ const Content = () => {
         <div className="flex justify-between items-center gap-2">
           <Filter size={20} className="text-gray-400" />
           <select
+            aria-label="Category Selector"
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="px-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-gray-800 text-gray-300 shadow-sm"
+            className="appearance-none px-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-gray-800 text-gray-300 shadow-sm"
           >
             {categories.map((cat, idx) => (
-              <option key={idx} value={cat}>
+              <option
+                style={{ backgroundColor: "#1f2937", color: "#d1d5db" }} 
+                value={cat}
+              >
                 {cat}
               </option>
             ))}
@@ -159,9 +161,9 @@ const Content = () => {
       {/* all courses */}
       <section className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {filteredCourses.length > 0 ? (
-          filteredCourses.map((course, index) =>
-            <CourseCard course={course} index={index}  />
-          )
+          filteredCourses.map((course, index) => (
+            <CourseCard course={course} index={index} />
+          ))
         ) : (
           <div className="col-span-full text-center text-gray-400 mt-10">
             No courses found. 🧐
