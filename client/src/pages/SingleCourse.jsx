@@ -11,8 +11,6 @@ import {
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { courseService } from "../services/courseService";
 
-
-
 const scrollbarStyles = `
   .custom-scrollbar::-webkit-scrollbar {
     width: 8px;
@@ -46,7 +44,7 @@ const SingleCourse = () => {
         setLoading(true);
         const response = await courseService.getCourseByTitle(title);
         setCourse(response.course);
-        
+
         // Initialize topics with the backend data
         if (response.course && response.course.topics) {
           setTopics(response.course.topics);
@@ -65,7 +63,7 @@ const SingleCourse = () => {
   }, [title]);
 
   useEffect(() => {
-    const styleElement = document.createElement('style');
+    const styleElement = document.createElement("style");
     styleElement.textContent = scrollbarStyles;
     document.head.appendChild(styleElement);
 
@@ -73,7 +71,6 @@ const SingleCourse = () => {
       document.head.removeChild(styleElement);
     };
   }, []);
-
 
   const scrollToSection = (id) => {
     const section = document.getElementById(id);
@@ -113,7 +110,9 @@ const SingleCourse = () => {
       <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 flex items-center justify-center text-white">
         <div className="text-center p-8">
           <h2 className="text-2xl font-bold mb-4">Course Not Found</h2>
-          <p className="mb-6">{error || "The requested course could not be found."}</p>
+          <p className="mb-6">
+            {error || "The requested course could not be found."}
+          </p>
           <button
             onClick={() => useNavigate("/")}
             className="bg-blue-600 px-6 py-2 rounded-lg hover:bg-blue-700"
@@ -128,19 +127,41 @@ const SingleCourse = () => {
   return (
     <div className="flex flex-col min-h-screen bg-gray-950 text-white font-sans">
       {/* Navbar */}
-      <header className="flex items-center justify-end bg-gray-900 border-b border-gray-800 p-4 sticky top-0 z-20">
-        <div className="flex items-center gap-4 mr-auto">
-          <Link
-            to="/"
-            className="text-2xl font-extrabold text-blue-400 tracking-wide"
-          >
-            Vm.
-          </Link>
+      <header className="bg-gray-900 border-b border-gray-800 py-3 px-4 md:px-6 sticky top-0 z-20 h-16">
+        <div className="max-w-screen-2xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Link
+              to="/"
+              className="flex items-center gap-2 text-gray-300 hover:text-white"
+            >
+              <span className="text-2xl font-bold text-blue-400">Vm.</span>
+            </Link>
+          </div>
+
+          <div className="hidden md:block">
+            <h1 className="text-xl font-bold text-white truncate max-w-md text-center">
+              {course.title}
+            </h1>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition duration-200">
+              <AirVent size={16} className="hidden sm:block" />
+              <span>Daily Plan Generator</span>
+            </button>
+
+            <button className="flex items-center justify-center gap-1 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition duration-200">
+              <span>Enroll Course</span>
+            </button>
+          </div>
         </div>
-        <button className="flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-all">
-          Daily Plan Generator
-          <AirVent size={16} />
-        </button>
+
+        {/* Mobile Course Title */}
+        <div className="md:hidden mt-2 px-2">
+          <h1 className="text-lg font-bold text-white text-center">
+            {course.title}
+          </h1>
+        </div>
       </header>
 
       <div className="flex flex-1 mb-0.5">
