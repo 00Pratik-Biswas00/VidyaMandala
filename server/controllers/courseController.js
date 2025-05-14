@@ -43,7 +43,32 @@ const getCourseByTitle = async (req, res) => {
   }
 };
 
+const getCourseById = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const course = await Course.findById(id);
+
+    if (!course) {
+      return next(
+        createCustomError(
+          `No course found with id: ${id}`,
+          STATUSCODE.NOT_FOUND
+        )
+      );
+    }
+
+    res.status(STATUSCODE.SUCCESS).json({
+      success: true,
+      course,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getAllCourses,
   getCourseByTitle,
+  getCourseById,
 };

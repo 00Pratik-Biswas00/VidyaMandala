@@ -12,7 +12,9 @@ import {
 } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { courseService } from "../services/courseService";
-
+import { authService } from "../services/authService";
+import axios from "axios";
+import { enrollmentService } from "../services/enrollmentService";
 const scrollbarStyles = `
   .custom-scrollbar::-webkit-scrollbar {
     width: 8px;
@@ -39,6 +41,9 @@ const SingleCourse = () => {
   const [error, setError] = useState(null);
   const [topics, setTopics] = useState([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  // Add these new state variables
+  const [isEnrolled, setIsEnrolled] = useState(false);
+  const [enrollmentLoading, setEnrollmentLoading] = useState(false);
 
   //sidebar autoclose for mobile screen
   useEffect(() => {
@@ -92,6 +97,41 @@ const SingleCourse = () => {
       document.head.removeChild(styleElement);
     };
   }, []);
+
+  useEffect(() => {
+    if (course && course._id && authService.isLoggedIn()) {
+      checkEnrollmentStatus(course._id);
+    }
+  }, [course]);
+
+  // Function to check if user is already enrolled
+  const checkEnrollmentStatus = async (courseId) => {
+    const isEnrolled = await enrollmentService.checkEnrollmentStatus(courseId);
+    setIsEnrolled(isEnrolled);
+  };
+
+  // Function to handle enrollment
+  const handleEnrollCourse = async () => {
+    if (!authService.isLoggedIn()) {
+      navigate("/login");
+      return;
+    }
+  
+    setEnrollmentLoading(true);
+    try {
+      if (isEnrolled) {
+        await enrollmentService.unenrollFromCourse(course._id);
+        setIsEnrolled(false);
+      } else {
+        await enrollmentService.enrollInCourse(course._id);
+        setIsEnrolled(true);
+      }
+    } catch (error) {
+      alert(error.response?.data?.error || "Failed to process enrollment");
+    } finally {
+      setEnrollmentLoading(false);
+    }
+  };
 
   const scrollToSection = (id) => {
     const section = document.getElementById(id);
@@ -172,8 +212,24 @@ const SingleCourse = () => {
               <span>Daily Plan Generator</span>
             </button>
 
-            <button className="flex items-center justify-center gap-1 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition duration-200">
-              <span>Enroll Course</span>
+            <button
+              onClick={handleEnrollCourse}
+              disabled={enrollmentLoading}
+              className={`flex items-center justify-center gap-1 
+      ${
+        isEnrolled
+          ? "bg-red-600 hover:bg-red-700"
+          : "bg-green-600 hover:bg-green-700"
+      } 
+      text-white text-sm font-semibold px-4 py-2 rounded-lg transition duration-200`}
+            >
+              <span>
+                {enrollmentLoading
+                  ? "Processing..."
+                  : isEnrolled
+                  ? "Unenroll"
+                  : "Enroll Course"}
+              </span>
             </button>
           </div>
         </div>

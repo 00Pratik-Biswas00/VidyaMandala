@@ -30,6 +30,12 @@ const UserSchema = new mongoose.Schema(
       enum: Object.values(USER_ROLES),
       default: USER_ROLES.USER,
     },
+    enrolledCourses: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Course',
+      }
+    ],
   },
   { timestamps: true }
 );
