@@ -1,9 +1,9 @@
-flask
+# flask
 # newspaper3k
 # transformers
 # torch
 # sentence-transformers
-flask_cors
+# flask_cors
 
 langchain
 langchain-google-genai

@@ -43,10 +43,13 @@ const PdfSummary = () => {
     formData.append("pdf", pdfFile);
 
     try {
-      const response = await fetch("http://localhost:5000/generate-summary", {
-        method: "POST",
-        body: formData,
-      });
+      const response = await fetch(
+        "http://localhost:5000/pdf/generate-summary",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
 
       const data = await response.json();
 

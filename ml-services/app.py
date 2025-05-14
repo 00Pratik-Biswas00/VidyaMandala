@@ -4,7 +4,7 @@ import os
 from dotenv import load_dotenv
 from block_diagram_generator.main import block_diagram_router
 from article_qa_gen.main import article_quiz_router
-from pdf_qa_gen.main import pdf_summary_router
+from pdf_qa_summary_gen.main import pdf_summary_router
 
 load_dotenv()
 
