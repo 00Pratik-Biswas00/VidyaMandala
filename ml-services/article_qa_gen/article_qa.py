@@ -2,8 +2,16 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
-from scrap_article import extract_article_content
+from article_qa_gen.scrap_article import extract_article_content
 import asyncio
+from dotenv import load_dotenv
+import logging
+
+load_dotenv()
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Initialize LLM
 llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0.7)
@@ -70,8 +78,84 @@ report_chain = (
     | StrOutputParser()
 )
 
-
 async def run_quiz_flow(article_url):
+    """Async function to run the quiz flow"""
+    try:
+        # Extract content
+        content = extract_article_content(article_url)
+        if not content:
+            return {"error": "Failed to extract article content"}, 400
+        
+        # Summarize content
+        summary = await summarize_chain.ainvoke(content)
+        
+        # Generate initial questions
+        questions = await question_gen_chain.ainvoke({"article_summary": summary, "num_questions": 5})
+        questions_list = [q.strip() for q in questions.split('\n') if q.strip()]
+        
+        return {
+            "status": "initialized",
+            "summary": summary,
+            "questions": questions_list
+        }
+    
+    except Exception as e:
+        logger.error(f"Error in initializing quiz: {str(e)}")
+        return {"error": str(e)}, 500
+
+async def select_question(questions_list):
+    """Select a Questions from Question List"""
+    try:
+        selected_question = await question_select_chain.ainvoke('\n'.join(questions_list))
+        return{
+            "current_question":selected_question
+        }
+    except Exception as e:
+        logger.error(f"Error selecting question: {str(e)}")
+        return {"error": str(e)}, 500
+
+async def process_question_answer(questions_list, selected_question, user_answer, interaction_history):
+    """Process a single question-answer interaction"""
+    try:
+        # Evaluate answer
+        evaluation = await eval_chain.ainvoke({
+            "question": selected_question,
+            "answer": user_answer
+        })
+        
+        # Update interaction history
+        interaction_history.append({
+            "question": selected_question,
+            "answer": user_answer,
+            "feedback": evaluation
+        })
+        
+        # Remove used question
+        updated_questions = [q for q in questions_list if selected_question not in q]
+        
+        return {
+            "updated_questions": updated_questions,
+            "interaction_history": interaction_history,
+            "feedback": evaluation
+        }
+    
+    except Exception as e:
+        logger.error(f"Error processing answer: {str(e)}")
+        return {"error": str(e)}, 500
+
+async def generate_final_report(interaction_history):
+    """Generate final report"""
+    try:
+        report = await report_chain.ainvoke('\n\n'.join(
+            f"Q: {item['question']}\nA: {item['answer']}\nFeedback: {item['feedback']}"
+            for item in interaction_history
+        ))
+        return {"report": report}
+    except Exception as e:
+        logger.error(f"Error generating report: {str(e)}")
+        return {"error": str(e)}, 500
+
+async def run_quiz(article_url):
     # Extract content
     content = extract_article_content(article_url)
     if not content:
@@ -112,7 +196,7 @@ async def run_quiz_flow(article_url):
         
         # Remove used question
         questions_list = [q for q in questions_list if selected_question not in q]
-        print(questions_list)
+        # print(questions_list)
         # Check if user wants to continue
         continue_input = input("\nContinue? (yes/no): ").lower()
         continue_quiz = continue_input.startswith('y')
@@ -124,15 +208,34 @@ async def run_quiz_flow(article_url):
             for item in interaction_history
         ))
         print("\n=== FINAL REPORT ===")
-        print(report)
+        # print(report)
         return report
     
     return "No questions were answered."
 
-async def main():
-    article_url = "https://www.geeksforgeeks.org/binary-search/"  # Replace with your article URL
-    await run_quiz_flow(article_url)
+async def test(url):
+    init = await run_quiz_flow(url)
+    summary = init['summary']
+    questions_list = init['questions']
+    interaction_history=[]
+    selected_question = await question_select_chain.ainvoke('\n'.join(questions_list))
+    # Get user answer
+    print(f"\nQuestion: {selected_question}")
+    user_answer = input("Your answer: ")
+
+    process = await process_question_answer(questions_list,selected_question,user_answer,interaction_history)
+
+    questions_list = process['updated_questions']
+    interaction_history = process['interaction_history']
+    print(process['feedback'])
+    report = await generate_final_report(interaction_history)
+    print(report)
+
+
+async def test1():
+    article_url = "https://www.w3schools.com/python/python_inheritance.asp"  # Replace with your article URL
+    await run_quiz(article_url)
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(test('https://www.w3schools.com/python/python_inheritance.asp'))

@@ -15,7 +15,7 @@ const BlockDiagramGenerator = () => {
     setPdfUrl("");
 
     try {
-      const res = await fetch("http://localhost:5000/generate-diagram", {
+      const res = await fetch("http://localhost:5000/block/generate-diagram", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -27,7 +27,7 @@ const BlockDiagramGenerator = () => {
 
       if (data.image) {
         setImage(data.image);
-        setPdfUrl(`http://localhost:5000${data.pdf_url}`);
+        setPdfUrl(`http://localhost:5000/block${data.pdf_url}`);
       } else {
         alert("Failed to generate diagram.");
       }
