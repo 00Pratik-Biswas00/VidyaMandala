@@ -10,6 +10,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import BlockDiagramGenerator from "./pages/BlockDiagramGenerator";
 import ProtectedRoute from "./components/ProtectedRoute";
+import MyCourses from "./pages/MyCourses";
 
 function App() {
   return (
@@ -27,10 +28,10 @@ function App() {
           }
         />
         <Route
-          path="/single-course"
+          path="/courses"
           element={
             <ProtectedRoute>
-              <SingleCourse />
+              <MyCourses />
             </ProtectedRoute>
           }
         />
