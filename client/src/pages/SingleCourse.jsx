@@ -7,6 +7,8 @@ import {
   ChevronLeft,
   ChevronRight,
   AirVent,
+  Star,
+  BookDown,
 } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { courseService } from "../services/courseService";
@@ -37,6 +39,25 @@ const SingleCourse = () => {
   const [error, setError] = useState(null);
   const [topics, setTopics] = useState([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  //sidebar autoclose for mobile screen
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setSidebarOpen(false);
+      }
+    };
+
+    // Check on initial mount
+    handleResize();
+
+    // Add resize listener
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   useEffect(() => {
     const fetchCourse = async () => {
@@ -139,8 +160,9 @@ const SingleCourse = () => {
           </div>
 
           <div className="hidden md:block">
-            <h1 className="text-xl font-bold text-white truncate max-w-md text-center">
+            <h1 className="text-gray-300 flex items-center justify-center gap-2  truncate max-w-md text-center font-medium bg-gray-800 bg-opacity-70 border border-gray-600 rounded-full text-sm px-4 py-1 shadow-sm tracking-wide">
               {course.title}
+              <BookDown size={16} />
             </h1>
           </div>
 
@@ -156,12 +178,13 @@ const SingleCourse = () => {
           </div>
         </div>
 
-        {/* Mobile Course Title */}
+        {/* Mobile Course Title
         <div className="md:hidden mt-2 px-2">
-          <h1 className="text-lg font-bold text-white text-center">
-            {course.title}
-          </h1>
-        </div>
+         <h1 className="text-gray-300 flex items-center justify-center gap-2  truncate max-w-md text-center font-medium bg-gray-800 bg-opacity-70 border border-gray-600 rounded-full text-sm px-4 py-1 shadow-sm tracking-wide">
+              {course.title}
+              <BookDown size={16} />
+            </h1>
+        </div> */}
       </header>
 
       <div className="flex flex-1 mb-0.5">
@@ -203,7 +226,7 @@ const SingleCourse = () => {
             </>
           )}
 
-          <nav className="space-y-1">
+          <nav className="space-y-1 pb-16">
             {topics.map((topic) => (
               <button
                 key={topic.id}
@@ -250,8 +273,9 @@ const SingleCourse = () => {
 
         {/* Main Content */}
         <main
-          className={`flex-1 transition-all p-6 sm:p-12 space-y-10 bg-gray-950`}
-          style={{ marginLeft: sidebarOpen ? "16rem" : "4rem" }}
+          className={`flex-1 transition-all p-6 sm:p-12 space-y-10 bg-gray-950 ${
+            sidebarOpen ? "ml-64" : "ml-16"
+          }`}
         >
           {topics.map((topic) => (
             <section
