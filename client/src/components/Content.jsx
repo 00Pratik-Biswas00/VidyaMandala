@@ -35,12 +35,18 @@ const Content = () => {
 
   const categories = [
     "All",
-    "Web",
-    "Backend",
-    "Cloud",
+    "Programming",
+    "Web Development",
+    "Mobile Development",
+    "Game Development",
+    "Cybersecurity",
+    "Design",
+    "Cloud Computing",
     "Data Science",
-    "Database",
+    "Blockchain",
+    "AI & ML",
     "DevOps",
+    "Marketing",
   ];
 
   const filteredCourses = courses.filter((course) => {
@@ -107,7 +113,7 @@ const Content = () => {
 
       {/* filter + search */}
       <section className="max-w-7xl mx-auto mb-10 flex flex-wrap items-center gap-4 justify-between px-2">
-        <div className="flex items-center gap-2">
+        <div className="flex justify-between items-center gap-2">
           <Filter size={20} className="text-gray-400" />
           <select
             value={selectedCategory}
