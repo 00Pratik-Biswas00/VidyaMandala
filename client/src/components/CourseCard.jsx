@@ -1,47 +1,74 @@
-import { Clock, Globe, Users } from "lucide-react";
-import {Link} from 'react-router-dom'
-const fallbackImage = "https://placehold.co/600x400";
-  const handleImageError = (e) => {
-    e.target.src = fallbackImage;
-  };
-const CourseCard = ({ course, index }) => (
-  <div
-    key={index}
-    className="bg-gray-800 rounded-lg border border-gray-700 hover:border-blue-500 overflow-hidden shadow-lg transition-all duration-200"
-  >
-    <img
-      src={course.placeholderImage}
-      alt={course.title}
-      loading="lazy"
-      onError={handleImageError}
-      className="w-full h-32 object-cover rounded-t-lg"
-    />
-    <div className="p-4">
-     <h3 className="text-lg font-semibold text-white mb-2 truncate" title={course.title}>
-  {course.title}
-</h3>
+import { useState } from "react";
+import { Clock, Globe, Loader, Users } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-      <div className="flex items-center text-sm text-gray-400 gap-2 mb-1">
-        <Users size={16} className="text-blue-500" />
-        <span>{course.enrolled.toLocaleString()} enrolled</span>
-      </div>
-      <div className="flex justify-between text-sm text-gray-400 mt-3">
-        <div className="flex items-center gap-1">
-          <Clock size={15} className="text-blue-500" />
-          <span>{course.duration}</span>
+const fallbackImage = "https://placehold.co/600x400";
+const handleImageError = (e) => {
+  e.target.src = fallbackImage;
+};
+
+const CourseCard = ({ course, index }) => {
+  const [loading, setLoading] = useState(false); 
+  const navigate = useNavigate();
+
+  const handleViewCourseClick = () => {
+    setLoading(true); 
+    setTimeout(() => {
+      navigate(`/details/${course.title}`); 
+    }, 1000); 
+  };
+
+  return (
+    <div
+      key={index}
+      className="bg-gray-800 rounded-lg border border-gray-700 hover:border-blue-500 overflow-hidden shadow-lg transition-all duration-200"
+    >
+      <img
+        src={course.placeholderImage}
+        alt={course.title}
+        loading="lazy"
+        onError={handleImageError}
+        className="w-full h-32 object-cover rounded-t-lg"
+      />
+      <div className="p-4">
+        <h3 className="text-lg font-semibold text-white mb-2 truncate" title={course.title}>
+          {course.title}
+        </h3>
+
+        <div className="flex items-center text-sm text-gray-400 gap-2 mb-1">
+          <Users size={16} className="text-blue-500" />
+          <span>{course.enrolled.toLocaleString()} enrolled</span>
         </div>
-        <div className="flex items-center gap-1">
-          <Globe size={15} className="text-blue-500" />
-          <span>{course.language}</span>
+        <div className="flex justify-between text-sm text-gray-400 mt-3">
+          <div className="flex items-center gap-1">
+            <Clock size={15} className="text-blue-500" />
+            <span>{course.duration}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Globe size={15} className="text-blue-500" />
+            <span>{course.language}</span>
+          </div>
         </div>
-      </div>
-      <Link to={`/details/${course.title}`} >
-        <button className="mt-4 w-full py-2 rounded-md bg-gradient-to-r from-blue-400 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 transition font-medium text-sm shadow-md">
-          View Course
+
+        <button
+          onClick={handleViewCourseClick}
+          className={`mt-4 w-full py-2 rounded-md text-white font-medium text-sm shadow-md transition ${
+            loading
+              ? "bg-gray-600 cursor-wait" 
+              : "bg-gradient-to-r from-blue-400 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+          }`}
+        >
+          {loading ? (
+            <div className="flex justify-center items-center">
+              <Loader size={16} className="animate-spin"/>
+            </div>
+          ) : (
+            "View Course"
+          )}
         </button>
-      </Link>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default CourseCard;
