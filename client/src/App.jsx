@@ -3,7 +3,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import "./App.css";
 import Home from "./pages/Home";
 import PdfSummary from "./pages/PdfSummary";
-import YtNotesGeneration from "./pages/YtNotesGeneration";
 import ArticleSummary from "./pages/ArticleSummary";
 import SingleCourse from "./pages/SingleCourse";
 import Login from "./pages/Login";
@@ -11,6 +10,7 @@ import Register from "./pages/Register";
 import BlockDiagramGenerator from "./pages/BlockDiagramGenerator";
 import ProtectedRoute from "./components/ProtectedRoute";
 import MyCourses from "./pages/MyCourses";
+import LearningPlan from "./pages/LearningPlan";
 
 function App() {
   return (
@@ -35,14 +35,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-        {/* <Route 
-          path="/yt-notes-generation" 
-          element={
-            <ProtectedRoute>
-              <YtNotesGeneration/>
-            </ProtectedRoute>
-          }
-        /> */}
+
         <Route
           path="/article-qNa"
           element={
@@ -56,6 +49,15 @@ function App() {
           element={
             <ProtectedRoute>
               <BlockDiagramGenerator />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/daily-learning-plan"
+          element={
+            <ProtectedRoute>
+              <LearningPlan />
             </ProtectedRoute>
           }
         />
