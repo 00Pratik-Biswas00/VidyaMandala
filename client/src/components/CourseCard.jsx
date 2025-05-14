@@ -1,6 +1,9 @@
 import { Clock, Globe, Users } from "lucide-react";
 import {Link} from 'react-router-dom'
-
+const fallbackImage = "https://placehold.co/600x400";
+  const handleImageError = (e) => {
+    e.target.src = fallbackImage;
+  };
 const CourseCard = ({ course, index }) => (
   <div
     key={index}
@@ -9,10 +12,15 @@ const CourseCard = ({ course, index }) => (
     <img
       src={course.placeholderImage}
       alt={course.title}
+      loading="lazy"
+      onError={handleImageError}
       className="w-full h-32 object-cover rounded-t-lg"
     />
     <div className="p-4">
-      <h3 className="text-lg font-semibold text-white mb-2">{course.title}</h3>
+     <h3 className="text-lg font-semibold text-white mb-2 truncate" title={course.title}>
+  {course.title}
+</h3>
+
       <div className="flex items-center text-sm text-gray-400 gap-2 mb-1">
         <Users size={16} className="text-blue-500" />
         <span>{course.enrolled.toLocaleString()} enrolled</span>

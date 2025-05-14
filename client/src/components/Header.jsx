@@ -1,7 +1,7 @@
-import { Link } from 'react-router-dom';
-import { useState, useEffect } from 'react';
-import { Menu, X } from 'lucide-react';
-import { authService } from '../services/authService';
+import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Menu, X } from "lucide-react";
+import { authService } from "../services/authService";
 
 const Header = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false); // Default to false
@@ -13,23 +13,23 @@ const Header = () => {
     const checkAuthStatus = () => {
       const loggedIn = authService.isLoggedIn();
       setIsLoggedIn(loggedIn);
-      
+
       if (loggedIn) {
         setUser(authService.getUser());
       }
     };
-    
+
     checkAuthStatus();
-    
+
     // You could add an event listener to listen for auth changes
-    window.addEventListener('storage', (event) => {
-      if (event.key === 'token') {
+    window.addEventListener("storage", (event) => {
+      if (event.key === "token") {
         checkAuthStatus();
       }
     });
-    
+
     return () => {
-      window.removeEventListener('storage', checkAuthStatus);
+      window.removeEventListener("storage", checkAuthStatus);
     };
   }, []);
 
@@ -40,17 +40,36 @@ const Header = () => {
       setUser(null);
       setMenuOpen(false);
       // Optional: Redirect to home or login page
-      window.location.href = '/';
+      window.location.href = "/";
     } catch (error) {
-      console.error('Logout failed:', error);
+      console.error("Logout failed:", error);
     }
+  };
+  const getRandomColor = (seed) => {
+    const colors = [
+      "#f87171",
+      "#60a5fa",
+      "#34d399",
+      "#fbbf24",
+      "#a78bfa",
+      "#f472b6",
+    ];
+    let hash = 0;
+    for (let i = 0; i < seed.length; i++) {
+      hash = seed.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const index = Math.abs(hash % colors.length);
+    return colors[index];
   };
 
   return (
     <nav className="w-full bg-gray-900 border-b border-gray-700">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <Link to="/" className="text-2xl font-extrabold text-blue-400 tracking-wide">
+          <Link
+            to="/"
+            className="text-2xl font-extrabold text-blue-400 tracking-wide"
+          >
             Vm.
           </Link>
 
@@ -72,7 +91,21 @@ const Header = () => {
               </>
             ) : (
               <>
-                {user && <span className="text-gray-300 mr-2">Welcome, {user.name}</span>}
+                {user && (
+                  <div className="flex items-center gap-3 text-gray-200 mr-2 hover:cursor-pointer">
+                    <div
+                      className="w-9 h-9 rounded-full flex items-center justify-center text-white font-semibold border-2 border-white shadow-md"
+                      style={{ backgroundColor: getRandomColor(user.name) }}
+                      title={user.name} 
+                    >
+                      {user.name.charAt(0).toUpperCase()}
+                    </div>
+                    {/* <span className="text-sm sm:text-base font-medium">
+                      Welcome
+                    </span> */}
+                  </div>
+                )}
+
                 <button
                   onClick={handleLogout}
                   className="px-6 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors ease-in-out duration-200 font-medium"
@@ -115,7 +148,11 @@ const Header = () => {
             </>
           ) : (
             <>
-              {user && <span className="block px-6 py-2 text-gray-300">Welcome, {user.name}</span>}
+              {user && (
+                <span className="block px-6 py-2 text-gray-300">
+                  Welcome, {user.name}
+                </span>
+              )}
               <button
                 onClick={handleLogout}
                 className="w-full text-left px-6 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors ease-in-out duration-200 font-medium"
