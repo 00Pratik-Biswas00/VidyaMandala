@@ -18,3 +18,8 @@ def extract_article_content(url):
     except Exception as e:
         print(f"Error extracting content: {e}")
         return None
+    
+if __name__ == "__main__":
+    url = "https://www.w3schools.com/python/python_inheritance.asp"
+    content = extract_article_content(url)
+    print(content)
