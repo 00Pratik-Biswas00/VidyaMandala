@@ -1,10 +1,8 @@
 const mongoose = require('mongoose');
 
 const connectDB = (url) => {
-  return mongoose.connect(url, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
+  // Remove deprecated options
+  return mongoose.connect(url);
 };
 
 module.exports = connectDB;

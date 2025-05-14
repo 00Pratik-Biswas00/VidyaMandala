@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from "react";
-import { Filter } from "lucide-react";
+import React, { useEffect, useState, useRef } from "react";
+import { Filter, ChevronLeft, ChevronRight } from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
 import "swiper/css";
-import "swiper/css/navigation";
 import Navbar from "./Navbar";
 import CourseCard from "./CourseCard";
 import { courseService } from "../services/courseService";
@@ -14,6 +13,7 @@ const Content = () => {
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const swiperRef = useRef(null);
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -57,6 +57,18 @@ const Content = () => {
     return matchesCategory && matchesSearch;
   });
 
+  const slidePrev = () => {
+    if (swiperRef.current && swiperRef.current.swiper) {
+      swiperRef.current.swiper.slidePrev();
+    }
+  };
+
+  const slideNext = () => {
+    if (swiperRef.current && swiperRef.current.swiper) {
+      swiperRef.current.swiper.slideNext();
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 flex items-center justify-center">
@@ -88,25 +100,53 @@ const Content = () => {
         <div className="inline-block px-4 py-1 mb-6 border border-green-600 bg-green-700 text-green-200 rounded-2xl text-sm font-medium shadow-sm">
           🚀 Featured Courses
         </div>
-        <Swiper
-          modules={[Navigation]}
-          navigation
-          pagination={{ clickable: true }}
-          scrollbar={{ draggable: true }}
-          spaceBetween={24}
-          breakpoints={{
-            640: { slidesPerView: 1.2 },
-            768: { slidesPerView: 2.2 },
-            1024: { slidesPerView: 3.2 },
-            1280: { slidesPerView: 4.2 },
-          }}
-        >
-          {courses.slice(0, 5).map((course, index) => (
-            <SwiperSlide key={course._id}>
-              <CourseCard course={course} index={index} />
-            </SwiperSlide>
-          ))}
-        </Swiper>
+        
+        {/* Custom three-column layout for swiper */}
+        <div className="flex items-center gap-2">
+          {/* Left arrow container */}
+          <div className="flex-shrink-0 w-12 flex items-center justify-center">
+            <button 
+              onClick={slidePrev} 
+              className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-800 text-white border border-gray-700 hover:bg-blue-700 transition-colors focus:outline-none"
+              aria-label="Previous slide"
+            >
+              <ChevronLeft size={20} />
+            </button>
+          </div>
+          
+          {/* Swiper container (middle section) */}
+          <div className="flex-grow overflow-hidden">
+            <Swiper
+              ref={swiperRef}
+              modules={[Navigation]}
+              spaceBetween={24}
+              breakpoints={{
+                640: { slidesPerView: 1.2 },
+                768: { slidesPerView: 2.2 },
+                1024: { slidesPerView: 3 },
+                1280: { slidesPerView: 4 },
+              }}
+              className="py-4"
+            >
+              {courses.slice(0, 5).map((course, index) => (
+                <SwiperSlide key={course._id}>
+                  <CourseCard course={course} index={index} />
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          </div>
+          
+          {/* Right arrow container */}
+          <div className="flex-shrink-0 w-12 flex items-center justify-center">
+            <button 
+              onClick={slideNext} 
+              className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-800 text-white border border-gray-700 hover:bg-blue-700 transition-colors focus:outline-none"
+              aria-label="Next slide"
+            >
+              <ChevronRight size={20} />
+            </button>
+          </div>
+        </div>
       </section>
 
       {/* filter + search */}
@@ -121,6 +161,7 @@ const Content = () => {
           >
             {categories.map((cat, idx) => (
               <option
+                key={idx}
                 style={{ backgroundColor: "#1f2937", color: "#d1d5db" }} 
                 value={cat}
               >
@@ -162,7 +203,7 @@ const Content = () => {
       <section className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {filteredCourses.length > 0 ? (
           filteredCourses.map((course, index) => (
-            <CourseCard course={course} index={index} />
+            <CourseCard key={course._id} course={course} index={index} />
           ))
         ) : (
           <div className="col-span-full text-center text-gray-400 mt-10">
