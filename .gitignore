@@ -136,3 +136,8 @@ dist
 .yarn/install-state.gz
 .pnp.*
 .idx
+
+
+# pdf and png
+*.pdf
+*.png
