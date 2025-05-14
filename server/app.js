@@ -7,6 +7,7 @@ const authRoutes = require('./routes/authRoutes');
 const courseRoutes = require('./routes/courseRoutes');
 const enrollmentRoutes = require('./routes/enrollmentRoutes');
 const progressRoutes = require('./routes/progressRoutes');
+const recommendationRoutes = require('./routes/recommendationRoutes');
 // Import middleware
 const errorHandlerMiddleware = require('./middlewares/errorHandler');
 const notFoundMiddleware = require('./middlewares/notFound');
@@ -32,7 +33,7 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/courses', courseRoutes);
 app.use('/api/v1/enrollment', enrollmentRoutes);
 app.use('/api/v1/progress', progressRoutes);
-
+app.use('/api/v1/recommendations', recommendationRoutes);
 // Error handling middleware
 app.use(notFoundMiddleware);
 app.use(errorHandlerMiddleware);

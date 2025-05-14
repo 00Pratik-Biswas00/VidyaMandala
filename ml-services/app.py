@@ -1,10 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import os
+import json
 from dotenv import load_dotenv
 from block_diagram_generator.main import block_diagram_router
 from article_qa_gen.main import article_quiz_router
 from pdf_qa_summary_gen.main import pdf_summary_router
+from course_recommender.recommender import CourseRecommender
 
 load_dotenv()
 
@@ -19,12 +21,42 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers
 )
 
+recommender = CourseRecommender()
+
 # Include routers with prefixes
 app.include_router(article_quiz_router, prefix="/article")
 app.include_router(block_diagram_router, prefix="/block")
 app.include_router(pdf_summary_router, prefix="/pdf")
 
+@app.route("/recommend-courses", methods=["POST"])
+def recommend_courses():
+    try:
+        data = request.get_json()
+        user_id = data.get("userId")
+        recently_viewed_course = data.get("recentCourseId")
+        
+        if not user_id:
+            return jsonify({"error": "Missing required parameter: userId"}), 400
+            
+        recommendations = recommender.get_recommendations(
+            user_id, 
+            recently_viewed_course_id=recently_viewed_course
+        )
+        
+        return jsonify(recommendations)
+    except Exception as e:
+        print(traceback.format_exc())
+        return jsonify({"error": str(e)}), 500
 
+# Add route to refresh course data
+@app.route("/refresh-recommender", methods=["POST"])
+def refresh_recommender():
+    try:
+        recommender.refresh_course_data()
+        return jsonify({"success": True, "message": "Recommender data refreshed successfully"})
+    except Exception as e:
+        print(traceback.format_exc())
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
     import uvicorn
