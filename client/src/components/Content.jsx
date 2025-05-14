@@ -1,16 +1,37 @@
-import React, { useState } from "react";
-import { Users, Clock, Globe, Filter } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Filter } from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import Navbar from "./Navbar"; 
 import CourseCard from "./CourseCard";
-import AllCourses from "../assets/AllCourses";
+import { courseService } from "../services/courseService";
 
 const Content = () => {
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        setLoading(true);
+        const response = await courseService.getAllCourses();
+        setCourses(response.courses);
+      } catch (err) {
+        console.error("Failed to fetch courses:", err);
+        setError("Failed to load courses. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCourses();
+  }, []);
+
 
   const categories = [
     "All",
@@ -22,7 +43,7 @@ const Content = () => {
     "DevOps",
   ];
 
-  const filteredCourses = AllCourses.filter((course) => {
+  const filteredCourses = courses.filter((course) => {
     const matchesCategory =
       selectedCategory === "All" || course.category === selectedCategory;
     const matchesSearch = course.title
@@ -30,6 +51,31 @@ const Content = () => {
       .includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 flex items-center justify-center">
+        <div className="text-white text-center">
+          <h2 className="text-xl font-semibold mb-4">{error}</h2>
+          <button
+            className="bg-blue-600 px-4 py-2 rounded-lg"
+            onClick={() => window.location.reload()}
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 pb-28 px-4 pt-10">
@@ -51,8 +97,8 @@ const Content = () => {
             1280: { slidesPerView: 4.2 },
           }}
         >
-          {AllCourses.slice(0, 5).map((course, index) => (
-            <SwiperSlide key={index}>
+          {courses.slice(0, 5).map((course, index) => (
+            <SwiperSlide key={course._id}>
               <CourseCard course={course} index={index} />
             </SwiperSlide>
           ))}

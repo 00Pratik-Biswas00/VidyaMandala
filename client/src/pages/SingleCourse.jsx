@@ -8,26 +8,72 @@ import {
   ChevronRight,
   AirVent,
 } from "lucide-react";
-import { Link, useParams } from "react-router-dom";
-import AllCourses from "../assets/AllCourses";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { courseService } from "../services/courseService";
+
+
+
+const scrollbarStyles = `
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: #1f2937;
+    border-radius: 9999px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #4b5563;
+    border-radius: 9999px;
+    border: 2px solid #1f2937;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: #6b7280;
+  }
+`;
 
 const SingleCourse = () => {
   const { title } = useParams();
-  const course = AllCourses.find((course) => course.title === title);
-
+  const navigate = useNavigate();
+  const [course, setCourse] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [topics, setTopics] = useState([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
-    if (course && course.topics) {
-      // Initialize with completed = false
-      const initialTopics = course.topics.map((topic) => ({
-        ...topic,
-        completed: false,
-      }));
-      setTopics(initialTopics);
+    const fetchCourse = async () => {
+      try {
+        setLoading(true);
+        const response = await courseService.getCourseByTitle(title);
+        setCourse(response.course);
+        
+        // Initialize topics with the backend data
+        if (response.course && response.course.topics) {
+          setTopics(response.course.topics);
+        }
+      } catch (err) {
+        console.error("Failed to fetch course:", err);
+        setError("Course not found or error loading course data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (title) {
+      fetchCourse();
     }
-  }, [course]);
+  }, [title]);
+
+  useEffect(() => {
+    const styleElement = document.createElement('style');
+    styleElement.textContent = scrollbarStyles;
+    document.head.appendChild(styleElement);
+
+    return () => {
+      document.head.removeChild(styleElement);
+    };
+  }, []);
+
 
   const scrollToSection = (id) => {
     const section = document.getElementById(id);
@@ -50,6 +96,31 @@ const SingleCourse = () => {
     return (
       <div className="text-white text-center mt-20 text-2xl">
         Course not found.
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (error || !course) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 flex items-center justify-center text-white">
+        <div className="text-center p-8">
+          <h2 className="text-2xl font-bold mb-4">Course Not Found</h2>
+          <p className="mb-6">{error || "The requested course could not be found."}</p>
+          <button
+            onClick={() => useNavigate("/")}
+            className="bg-blue-600 px-6 py-2 rounded-lg hover:bg-blue-700"
+          >
+            Back to Courses
+          </button>
+        </div>
       </div>
     );
   }
@@ -328,25 +399,6 @@ const SingleCourse = () => {
           </section>
         </main>
       </div>
-
-      {/* Scrollbar styling */}
-      <style jsx>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 8px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: #1f2937;
-          border-radius: 9999px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background-color: #4b5563;
-          border-radius: 9999px;
-          border: 2px solid #1f2937;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background-color: #6b7280;
-        }
-      `}</style>
     </div>
   );
 };

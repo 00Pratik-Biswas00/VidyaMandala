@@ -5,6 +5,7 @@ const rateLimiter = require('express-rate-limit');
 
 // Import routes
 const authRoutes = require('./routes/authRoutes');
+const courseRoutes = require('./routes/courseRoutes');
 
 // Import middleware
 const errorHandlerMiddleware = require('./middlewares/errorHandler');
@@ -34,6 +35,7 @@ app.use(express.urlencoded({ extended: false }));
 
 // Routes
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/courses', courseRoutes);
 
 // Error handling middleware
 app.use(notFoundMiddleware);
