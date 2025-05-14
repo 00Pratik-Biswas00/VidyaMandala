@@ -77,7 +77,9 @@ const login = async (req, res, next) => {
 // Get current user info
 const getCurrentUser = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user.userId).select('-password');
+    const user = await User.findById(req.user.userId)
+      .select('-password')
+      .populate('enrolledCourses', 'title category duration language placeholderImage');
     
     if (!user) {
       return next(createCustomError('User not found', STATUSCODE.NOT_FOUND));
