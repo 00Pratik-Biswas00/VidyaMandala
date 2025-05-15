@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 import { authService } from "../services/authService";
-
+import logo from "../assets/logo.png";
 const Header = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false); // Default to false
   const [menuOpen, setMenuOpen] = useState(false);
@@ -70,7 +70,7 @@ const Header = () => {
             to="/"
             className="text-2xl font-extrabold text-blue-400 tracking-wide"
           >
-            Vm.
+            <img src={logo} alt="Vidyamandala logo" className="w-20 h-20 " />
           </Link>
 
           <div className="hidden md:flex items-center space-x-6">
@@ -92,11 +92,11 @@ const Header = () => {
             ) : (
               <>
                 {user && (
-                  <div className="flex items-center gap-3 text-gray-200 mr-2 hover:cursor-pointer">
+                  <div className="flex items-center gap-3 text-gray-200 hover:cursor-pointer">
                     <div
                       className="w-9 h-9 rounded-full flex items-center justify-center text-white font-semibold border-2 border-white shadow-md"
                       style={{ backgroundColor: getRandomColor(user.name) }}
-                      title={user.name} 
+                      title={user.name}
                     >
                       {user.name.charAt(0).toUpperCase()}
                     </div>
@@ -108,7 +108,7 @@ const Header = () => {
 
                 <button
                   onClick={handleLogout}
-                  className="px-6 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors ease-in-out duration-200 font-medium"
+                  className="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors ease-in-out duration-200 font-medium"
                 >
                   Logout
                 </button>

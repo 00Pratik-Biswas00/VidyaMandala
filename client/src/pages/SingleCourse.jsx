@@ -15,6 +15,7 @@ import { courseService } from "../services/courseService";
 import { authService } from "../services/authService";
 import { enrollmentService } from "../services/enrollmentService";
 import { progressService } from "../services/progressService";
+import logo from "../assets/logo.png";
 
 const scrollbarStyles = `
   .custom-scrollbar::-webkit-scrollbar {
@@ -319,22 +320,15 @@ const SingleCourse = () => {
   return (
     <div className="flex flex-col min-h-screen bg-gray-950 text-white font-sans">
       {/* Navbar */}
-      <header className="bg-gray-900 border-b border-gray-800 py-3 px-4 md:px-6 sticky top-0 z-20 h-16">
+      <header className="bg-gray-900 border-b border-gray-800  px-4 md:px-6 sticky top-0 z-20 h-18">
         <div className="max-w-screen-2xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center ">
             <Link
               to="/"
-              className="flex items-center gap-2 text-gray-300 hover:text-white"
+              className="flex items-center  text-gray-300 hover:text-white"
             >
-              <span className="text-2xl font-bold text-blue-400">Vm.</span>
+              <img src={logo} alt="Vidyamandala logo" className="w-20 h-20 " />
             </Link>
-          </div>
-
-          <div className="hidden md:block">
-            <h1 className="text-gray-300 flex items-center justify-center gap-2  truncate max-w-md text-center font-medium bg-gray-800 bg-opacity-70 border border-gray-600 rounded-full text-sm px-4 py-1 shadow-sm tracking-wide">
-              {course.title}
-              <BookDown size={16} />
-            </h1>
           </div>
 
           <div className="flex items-center gap-3">
@@ -376,7 +370,7 @@ const SingleCourse = () => {
             sidebarOpen ? "w-64 p-4" : "w-16 p-2"
           }`}
         >
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-4 pt-4">
             {sidebarOpen && (
               <h2 className="text-lg font-bold text-white">Course Progress</h2>
             )}
@@ -455,10 +449,17 @@ const SingleCourse = () => {
 
         {/* Main Content */}
         <main
-          className={`flex-1 transition-all p-6 sm:p-12 space-y-10 bg-gray-950 ${
+          className={`flex-1 transition-all p-7 space-y-10 bg-gray-950 ${
             sidebarOpen ? "ml-64" : "ml-16"
           }`}
         >
+          <div className="hidden md:block">
+            <h1 className="text-gray-300 flex items-center justify-center gap-2  truncate max-w-md text-center font-medium bg-gray-800 bg-opacity-70 border border-gray-600 rounded-3xl text-lg  py-3 shadow-sm tracking-wider">
+              {course.title}
+              <BookDown size={20} />
+            </h1>
+          </div>
+
           {topics.map((topic) => (
             <section
               key={topic.id}
