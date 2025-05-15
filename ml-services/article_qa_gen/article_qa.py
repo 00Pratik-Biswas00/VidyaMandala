@@ -91,7 +91,7 @@ async def run_quiz_flow(article_url):
         
         # Generate initial questions
         questions = await question_gen_chain.ainvoke({"article_summary": summary, "num_questions": 5})
-        questions_list = [q.strip() for q in questions.split('\n') if q.strip()]
+        questions_list = [q.strip() for q in questions.split('\n')[1:] if q.strip()]
         
         return {
             "status": "initialized",
@@ -106,7 +106,8 @@ async def run_quiz_flow(article_url):
 async def select_question(questions_list):
     """Select a Questions from Question List"""
     try:
-        selected_question = await question_select_chain.ainvoke('\n'.join(questions_list))
+        selected_question = questions_list[0]
+        # selected_question = await question_select_chain.ainvoke('\n'.join(questions_list))
         return{
             "current_question":selected_question
         }

@@ -6,12 +6,14 @@
 # flask_cors
 
 langchain
+langchain-community
 langchain-google-genai
 beautifulsoup4
 python-dotenv
-# streamlit
 readability-lxml
 fastapi
 uvicorn
 google-generativeai
 graphviz
+PyMuPDF
+python-multipart

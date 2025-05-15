@@ -15,11 +15,13 @@ const api = axios.create({
 
 const initQuiz = async (url) => {
   const response = await api.post("/init-quiz", { url });
+  console.log(response.data);
   return response.data;
 };
 
 const selectQuestion = async (questions) => {
   const response = await api.post("/select-question", { questions });
+  console.log(response.data);
   return response.data;
 };
 
@@ -30,6 +32,7 @@ const submitAnswer = async (questions, question, answer, history) => {
     answer,
     interaction_history: history,
   });
+  console.log(response.data);
   return response.data;
 };
 
@@ -37,6 +40,7 @@ const generateReport = async (interactionHistory) => {
   const response = await api.post("/generate-report", {
     interaction_history: interactionHistory,
   });
+  console.log(response.data);
   return response.data;
 };
 
@@ -101,7 +105,7 @@ const ArticleSummary = () => {
         interactionHistory: result.interaction_history,
         feedback: result.feedback,
         status:
-          result.updated_questions.length > 0 ? "question" : "report-ready",
+          result.updated_questions.length > 0 ? "question" : "report",
       }));
     } catch (error) {
       console.error("Failed to submit answer:", error);
@@ -186,7 +190,7 @@ const ArticleSummary = () => {
 
         {/* Quiz Section */}
         {(quizState.status === "question" ||
-          quizState.status === "report-ready") && (
+          quizState.status === "report") && (
           <div className="z-20 w-full max-w-5xl space-y-4">
             <h2 className="text-xl font-medium font-montserrat">Question:</h2>
             <div className="bg-gray-800 p-4 rounded-md font-open_sans">
