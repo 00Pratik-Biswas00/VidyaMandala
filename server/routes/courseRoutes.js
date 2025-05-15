@@ -5,6 +5,6 @@ const { getAllCourses, getCourseByTitle, getCourseById } = require('../controlle
 
 router.get('/', getAllCourses);
 router.get('/:title', getCourseByTitle);
-router.get('/:id', getCourseById);
+router.get('/id/:id', getCourseById);
 
 module.exports = router;

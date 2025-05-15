@@ -53,9 +53,8 @@ function App() {
             </ProtectedRoute>
           }
         />
-
         <Route
-          path="/daily-learning-plan"
+          path="/daily-learning-plan/:courseId"
           element={
             <ProtectedRoute>
               <LearningPlan />
