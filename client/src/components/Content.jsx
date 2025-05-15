@@ -6,21 +6,66 @@ import "swiper/css";
 import Navbar from "./Navbar";
 import CourseCard from "./CourseCard";
 import { courseService } from "../services/courseService";
+import { recommendationService } from "../services/recommendationService";
+import { authService } from "../services/authService";
+import { mlServiceUtils } from "../services/mlServiceUtils";
 
 const Content = () => {
   const [courses, setCourses] = useState([]);
+  const [featuredCourses, setFeaturedCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [isRecommended, setIsRecommended] = useState(false);
+  const [mlServiceAvailable, setMlServiceAvailable] = useState(false);
   const swiperRef = useRef(null);
 
   useEffect(() => {
-    const fetchCourses = async () => {
+    const fetchCoursesAndRecommendations = async () => {
       try {
         setLoading(true);
+        
+        // Get all courses
         const response = await courseService.getAllCourses();
-        setCourses(response.courses);
+        const allCourses = response.courses;
+        setCourses(allCourses);
+        
+        // Check ML service availability first
+        const isAvailable = await mlServiceUtils.checkHealth();
+        setMlServiceAvailable(isAvailable);
+        
+        // Check if user is logged in
+        const isLoggedIn = authService.isLoggedIn();
+        const userData = authService.getCurrentUser();
+        
+        if (isLoggedIn && userData && userData.id && isAvailable) {
+          try {
+            // Get personalized recommendations
+            const recommendations = await recommendationService.getRecommendations(allCourses);
+            if (recommendations && recommendations.length > 0) {
+              // Map recommendation IDs to full course objects
+              const recommendedCourseObjects = recommendations.map(rec => {
+                const matchingCourse = allCourses.find(course => course._id === rec.id);
+                return matchingCourse || null;
+              }).filter(Boolean);
+              
+              if (recommendedCourseObjects.length > 0) {
+                setFeaturedCourses(recommendedCourseObjects);
+                setIsRecommended(true);
+                console.log("Showing personalized recommendations");
+                return; // Exit early since we set featured courses
+              }
+            }
+          } catch (recError) {
+            console.error("Failed to get recommendations:", recError);
+          }
+        }
+        
+        // Fallback to random courses
+        setFeaturedCourses(getRandomCourses(allCourses, 6));
+        setIsRecommended(false);
+          
       } catch (err) {
         console.error("Failed to fetch courses:", err);
         setError("Failed to load courses. Please try again.");
@@ -29,8 +74,14 @@ const Content = () => {
       }
     };
 
-    fetchCourses();
+    fetchCoursesAndRecommendations();
   }, []);
+
+  // Get random courses helper function
+  const getRandomCourses = (courses, count) => {
+    const shuffled = [...courses].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, count);
+  };
 
   const categories = [
     "All",
@@ -56,6 +107,17 @@ const Content = () => {
       .includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
+
+  // Handle search with activity tracking
+  const handleSearch = (e) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    
+    // Track search activity if it's meaningful
+    if (query.length >= 3 && authService.isLoggedIn() && mlServiceAvailable) {
+      recommendationService.trackActivity('search', null, query);
+    }
+  };
 
   const slidePrev = () => {
     if (swiperRef.current && swiperRef.current.swiper) {
@@ -98,7 +160,7 @@ const Content = () => {
       {/* featured courses */}
       <section className="max-w-7xl mx-auto mb-20">
         <div className="inline-block px-4 py-1 mb-6 border border-green-600 bg-green-700 text-green-200 rounded-2xl text-sm font-medium shadow-sm">
-          🚀 Featured Courses
+          {isRecommended ? "💡 Recommended For You" : "🚀 Featured Courses"}
         </div>
         
         {/* Custom three-column layout for swiper */}
@@ -128,7 +190,7 @@ const Content = () => {
               }}
               className="py-4"
             >
-              {courses.slice(0, 5).map((course, index) => (
+              {featuredCourses.map((course, index) => (
                 <SwiperSlide key={course._id}>
                   <CourseCard course={course} index={index} />
                 </SwiperSlide>
@@ -175,7 +237,7 @@ const Content = () => {
             type="text"
             placeholder="Search courses..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={handleSearch}
             className="w-full pl-10 pr-4 py-3 border border-gray-600 rounded-lg shadow-sm bg-gray-800 text-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none transition ease-in-out"
           />
           <div className="absolute left-3 top-1/2 transform -translate-y-1/2">

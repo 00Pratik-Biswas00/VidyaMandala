@@ -65,20 +65,44 @@ export const authService = {
   },
 
   // Get current user
-  getCurrentUser: async () => {
-    return api.get('/auth/me');
+  getCurrentUser: () => {
+    try {
+      const userStr = localStorage.getItem('user');
+      if (!userStr) return null;
+      
+      return JSON.parse(userStr);
+    } catch (e) {
+      console.error("Error getting current user:", e);
+      return null;
+    }
   },
 
   // Check if user is logged in
   isLoggedIn: () => {
-    return !!localStorage.getItem('token');
+    try {
+      const token = localStorage.getItem('token');
+      const user = localStorage.getItem('user');
+      return !!token && !!user;
+    } catch (e) {
+      console.error("Error checking authentication status:", e);
+      return false;
+    }
   },
 
   // Get stored user
   getUser: () => {
     const user = localStorage.getItem('user');
     return user ? JSON.parse(user) : null;
-  }
+  },
+
+  getToken: () => {
+    try {
+      return localStorage.getItem('token') || '';
+    } catch (e) {
+      console.error("Error getting token:", e);
+      return '';
+    }
+  },
 };
 
 export default authService;

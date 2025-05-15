@@ -18,3 +18,5 @@ graphviz
 PyMuPDF
 pypdf
 python-multipart
+scikit-learn
+numpy

@@ -3,6 +3,8 @@ import { CheckCircle, Clock, Globe, Loader, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { enrollmentService } from "../services/enrollmentService";
 import { authService } from "../services/authService";
+import { recommendationService } from "../services/recommendationService"; // Add this
+import { mlServiceUtils } from "../services/mlServiceUtils";
 
 const fallbackImage = "https://placehold.co/600x400";
 const handleImageError = (e) => {
@@ -37,7 +39,43 @@ const CourseCard = ({ course, index }) => {
     checkEnrollmentStatus();
   }, [course]);
 
+  useEffect(() => {
+    const trackCourseView = async () => {
+      if (authService.isLoggedIn()) {
+        try {
+          // Store view locally regardless of ML service availability
+          const userId = authService.getCurrentUser()?.id;
+          if (userId) {
+            const viewKey = `course_views_${userId}`;
+            let views = JSON.parse(localStorage.getItem(viewKey) || '[]');
+            if (!views.includes(course._id)) {
+              views.push(course._id);
+              localStorage.setItem(viewKey, JSON.stringify(views));
+              console.log(`Locally tracked view for course: ${course.title}`);
+            }
+          }
+          
+          // Try to track on server if available
+          recommendationService.trackActivity('view', course._id, null, course.category);
+        } catch (error) {
+          console.log("Error tracking course view:", error.message);
+        }
+      }
+    };
+  
+    // Only track if course has valid ID and this is not checkingEnrollment state
+    if (course && course._id && !checkingEnrollment) {
+      trackCourseView();
+    }
+  }, [course?._id, checkingEnrollment]);
+  
   const handleViewCourseClick = () => {
+    // Track view locally and remotely if possible
+    if (authService.isLoggedIn()) {
+      console.log(`Tracking view click for course: ${course.title} (${course._id})`);
+      recommendationService.trackActivity('view', course._id, null, course.category);
+    }
+    
     setLoading(true);
     setTimeout(() => {
       navigate(`/details/${course.title}`);
