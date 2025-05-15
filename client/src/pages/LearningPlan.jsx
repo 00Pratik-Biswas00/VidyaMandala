@@ -13,8 +13,8 @@ const LearningPlan = () => {
   const { courseId } = useParams();
   const navigate = useNavigate();
   const [course, setCourse] = useState(null);
-  const [isEnrolled, setIsEnrolled] = useState(false);  // Add enrollment state
-  const [checkingEnrollment, setCheckingEnrollment] = useState(true);  // Add this state
+  const [isEnrolled, setIsEnrolled] = useState(false); // Add enrollment state
+  const [checkingEnrollment, setCheckingEnrollment] = useState(true); // Add this state
   const [months, setMonths] = useState("1");
   const [hours, setHours] = useState("2");
   const [step, setStep] = useState("input");
@@ -32,13 +32,15 @@ const LearningPlan = () => {
       navigate("/login");
       return;
     }
-    
+
     // Make sure courseId is actually available
     if (!courseId) {
-      setError("Missing course ID. Please return to the course page and try again.");
+      setError(
+        "Missing course ID. Please return to the course page and try again."
+      );
       return;
     }
-    
+
     console.log("Learning Plan - Course ID:", courseId);
 
     const fetchCourse = async () => {
@@ -46,23 +48,27 @@ const LearningPlan = () => {
         setLoading(true);
         console.log("Attempting to fetch course with ID:", courseId);
         const response = await courseService.getCourseById(courseId);
-        
+
         if (!response || !response.course) {
           setError("Course not found. Please check the URL and try again.");
           return;
         }
-        
+
         setCourse(response.course);
         console.log("Course fetched successfully:", response.course.title);
-        
+
         // Check enrollment status
         setCheckingEnrollment(true);
         try {
-          const enrolled = await enrollmentService.checkEnrollmentStatus(courseId);
+          const enrolled = await enrollmentService.checkEnrollmentStatus(
+            courseId
+          );
           setIsEnrolled(enrolled);
-          
+
           if (!enrolled) {
-            setError("You must be enrolled in this course to generate a learning plan.");
+            setError(
+              "You must be enrolled in this course to generate a learning plan."
+            );
           }
         } catch (err) {
           console.error("Failed to check enrollment status:", err);
@@ -70,10 +76,11 @@ const LearningPlan = () => {
         } finally {
           setCheckingEnrollment(false);
         }
-        
       } catch (err) {
         console.error("Failed to fetch course:", err);
-        setError("Course not found or error loading course data. Please try again.");
+        setError(
+          "Course not found or error loading course data. Please try again."
+        );
       } finally {
         setLoading(false);
       }
@@ -82,45 +89,55 @@ const LearningPlan = () => {
     fetchCourse();
   }, [courseId, navigate]);
 
-
   const handleStartQuiz = async () => {
     try {
       // Check enrollment status again before proceeding
       if (!isEnrolled) {
-        setError("You must be enrolled in this course to generate a learning plan.");
+        setError(
+          "You must be enrolled in this course to generate a learning plan."
+        );
         return;
       }
-      
+
       setQuizLoading(true);
-      
+
       // Validate input
       const monthsNum = parseInt(months);
       const hoursNum = parseInt(hours);
-      
-      if (isNaN(monthsNum) || monthsNum <= 0 || isNaN(hoursNum) || hoursNum <= 0) {
+
+      if (
+        isNaN(monthsNum) ||
+        monthsNum <= 0 ||
+        isNaN(hoursNum) ||
+        hoursNum <= 0
+      ) {
         setError("Please enter valid numbers for months and hours");
         return;
       }
-      
+
       // Check if courseId is defined before making the request
       if (!courseId) {
-        setError("Course ID is missing. Please return to the course page and try again.");
+        setError(
+          "Course ID is missing. Please return to the course page and try again."
+        );
         setQuizLoading(false);
         return;
       }
-      
+
       console.log("Fetching quiz for courseId:", courseId);
-      
+
       // Fetch quiz questions for this course
       const fetchedQuestions = await mlService.getCourseQuiz(courseId);
-      
+
       // Check if we got valid questions back
       if (!fetchedQuestions || fetchedQuestions.length === 0) {
-        setError("No quiz questions available for this course. Please try another course.");
+        setError(
+          "No quiz questions available for this course. Please try another course."
+        );
         setQuizLoading(false);
         return;
       }
-      
+
       setQuestions(fetchedQuestions);
       setStep("quiz");
     } catch (err) {
@@ -132,7 +149,16 @@ const LearningPlan = () => {
   };
 
   const handleOptionChange = (qid, selectedOption) => {
+    // Save the current scroll position
+    const scrollPosition = window.scrollY;
+
+    // Update answers state
     setAnswers({ ...answers, [qid]: selectedOption });
+
+    // Use setTimeout to restore scroll position after state update and re-render
+    setTimeout(() => {
+      window.scrollTo(0, scrollPosition);
+    }, 0);
   };
 
   const handleSubmitQuiz = () => {
@@ -165,17 +191,20 @@ const LearningPlan = () => {
       setLoading(true);
       const monthsNum = parseInt(months);
       const hoursNum = parseInt(hours);
-      
+
       console.log("Generating plan with params:", {
-        courseId, months: monthsNum, hours: hoursNum, score: finalScore
+        courseId,
+        months: monthsNum,
+        hours: hoursNum,
+        score: finalScore,
       });
-      
+
       // Make sure we have all required data
       if (!courseId) {
         setError("Course ID is missing. Cannot generate learning plan.");
         return;
       }
-      
+
       // Call the ML service
       const response = await mlService.generateLearningPlan(
         courseId,
@@ -183,33 +212,42 @@ const LearningPlan = () => {
         hoursNum,
         finalScore
       );
-      
+
       console.log("Plan generation result:", response);
-      
+
       // Check response
-      if (!response || typeof response.plan !== 'string') {
+      if (!response || typeof response.plan !== "string") {
         setError("Invalid response from learning plan service");
         return;
       }
-      
+
       setResult({
         score: finalScore,
         plan: response.plan,
       });
-      
+
       setStep("result");
     } catch (err) {
       console.error("Failed to generate plan:", err);
-      
+
       // Show more detailed error message
       if (err.response) {
         const status = err.response.status;
-        const detail = err.response.data?.detail || '';
-        setError(`Server error (${status}): ${detail || "Failed to generate learning plan"}`);
+        const detail = err.response.data?.detail || "";
+        setError(
+          `Server error (${status}): ${
+            detail || "Failed to generate learning plan"
+          }`
+        );
       } else if (err.request) {
-        setError("No response received from server. Please check if the ML service is running.");
+        setError(
+          "No response received from server. Please check if the ML service is running."
+        );
       } else {
-        setError("Failed to generate learning plan: " + (err.message || "Unknown error"));
+        setError(
+          "Failed to generate learning plan: " +
+            (err.message || "Unknown error")
+        );
       }
     } finally {
       setLoading(false);
@@ -237,15 +275,18 @@ const LearningPlan = () => {
       <div className="min-h-screen bg-gradient-to-b from-blue-950 to-black flex items-center justify-center text-white">
         <div className="text-center p-8 max-w-lg">
           <h2 className="text-2xl font-bold mb-4">Enrollment Required</h2>
-          <p className="mb-6">You must be enrolled in {course?.title || "this course"} to generate a learning plan.</p>
+          <p className="mb-6">
+            You must be enrolled in {course?.title || "this course"} to generate
+            a learning plan.
+          </p>
           <div className="flex gap-4 justify-center">
-            <button 
+            <button
               onClick={() => navigate(`/details/${course?.title || ""}`)}
               className="bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-700"
             >
               Go to Course
             </button>
-            <button 
+            <button
               onClick={() => navigate("/")}
               className="bg-gray-600 px-4 py-2 rounded-lg hover:bg-gray-700"
             >
@@ -263,7 +304,7 @@ const LearningPlan = () => {
         <div className="text-center p-8 max-w-lg">
           <h2 className="text-2xl font-bold mb-4">Error</h2>
           <p className="mb-6">{error}</p>
-          <button 
+          <button
             onClick={() => {
               setError(null);
               // Don't reset anything else - keep courseId and other state intact
@@ -280,7 +321,11 @@ const LearningPlan = () => {
             }}
             className="bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-700"
           >
-            {course ? "Try Again" : courseId ? "Reload Page" : "Back to Courses"}
+            {course
+              ? "Try Again"
+              : courseId
+              ? "Reload Page"
+              : "Back to Courses"}
           </button>
         </div>
       </div>
@@ -348,34 +393,44 @@ const LearningPlan = () => {
             <h2 className="text-2xl font-semibold font-montserrat text-center">
               Quiz - Answer {questions.length} Questions
             </h2>
-            {questions.map((q, idx) => (
-              <div
-                key={q.id}
-                className="text-white font-mono bg-blue-900/30 p-4 rounded-lg"
-              >
-                <p className="mb-2">
-                  <strong>Q{idx + 1}:</strong> {q.question}
-                </p>
-                <div className="flex flex-col gap-1 pl-4">
-                  {q.options.map((opt) => (
-                    <label
-                      key={opt}
-                      className="flex items-center hover:bg-blue-800/30 p-1 rounded cursor-pointer"
-                    >
-                      <input
-                        type="radio"
-                        name={`question-${q.id}`}
-                        value={opt}
-                        checked={answers[q.id] === opt}
-                        onChange={() => handleOptionChange(q.id, opt)}
-                        className="mr-2"
-                      />
-                      {opt}
-                    </label>
-                  ))}
+            <div className="max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+              {questions.map((q, idx) => (
+                <div
+                  key={q.id}
+                  className="text-white font-mono bg-blue-900/30 p-4 rounded-lg mb-4"
+                >
+                  <p className="mb-2">
+                    <strong>Q{idx + 1}:</strong> {q.question}
+                  </p>
+                  <div className="flex flex-col gap-1 pl-4">
+                    {q.options.map((opt) => (
+                      <label
+                        key={opt}
+                        className={`flex items-center p-2 rounded cursor-pointer transition-colors ${
+                          answers[q.id] === opt
+                            ? "bg-blue-800/60 border border-blue-400"
+                            : "hover:bg-blue-800/30"
+                        }`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleOptionChange(q.id, opt);
+                        }}
+                      >
+                        <input
+                          type="radio"
+                          name={`question-${q.id}`}
+                          value={opt}
+                          checked={answers[q.id] === opt}
+                          onChange={() => {}} // Empty onChange to avoid React warning about controlled components
+                          className="mr-3"
+                        />
+                        <span className="select-none">{opt}</span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
             <button
               onClick={handleSubmitQuiz}
               className="bg-green-600 hover:bg-green-700 font-ubuntu font-semibold text-white px-4 py-2 rounded-md mx-auto mt-4"

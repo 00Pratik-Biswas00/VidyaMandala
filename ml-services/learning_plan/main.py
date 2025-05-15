@@ -37,9 +37,28 @@ def get_quiz(course_id: str, authorization: str = Header(None)):
     token = authorization.replace("Bearer ", "") if authorization.startswith("Bearer ") else authorization
     
     try:
-        # Get course-specific MCQs from backend
+        # Get course-specific MCQs from backend (this now uses random.sample)
         mcqs = get_mcq_questions(course_id, token, num_questions=5)
-        return {"questions": mcqs}
+        
+        # If no MCQs found, return error
+        if not mcqs:
+            raise HTTPException(
+                status_code=404, 
+                detail=f"No quiz questions found for course: {course_id}"
+            )
+            
+        # Format questions for frontend
+        formatted_questions = []
+        for i, mcq in enumerate(mcqs):
+            formatted_questions.append({
+                "id": i + 1,  # Ensure consistent numbering
+                "question": mcq["question"],
+                "options": mcq["options"],
+                "answer": mcq["answer"],
+                "difficulty": mcq.get("difficulty", "medium")
+            })
+            
+        return {"questions": formatted_questions}
     except HTTPException as e:
         raise e
     except Exception as e:
@@ -79,29 +98,48 @@ def generate_plan(req: GeneratePlanRequest, authorization: str = Header(None)):
         adjusted_content = []
         for topic in course_content:
             base = topic["base_hours"]
-            if score >= 4:
-                if base <= 5:
-                    adjusted_hours = max(int(base * 0.5), 1)
-                else:
-                    adjusted_hours = base
-            elif score >= 2:
-                if base <= 5:
-                    adjusted_hours = int(base * 0.75) or 1  # Ensure non-zero
-                else:
-                    adjusted_hours = base
-            else:
-                adjusted_hours = base or 1  # Ensure non-zero
-
+            # Ensure base is a positive number
+            if not isinstance(base, (int, float)) or base <= 0:
+                base = 1.0
+                
+            # Adjust hours based on quiz score
+            if score >= 4:  # Excellent score (4-5) - faster learning pace
+                adjusted_hours = max(base * 0.6, 0.5)  # Reduce time by 40% but minimum 30 mins
+            elif score >= 2:  # Medium score (2-3) - standard pace
+                adjusted_hours = max(base * 0.8, 0.75)  # Reduce time by 20% but minimum 45 mins
+            else:  # Low score (0-1) - slower pace
+                adjusted_hours = base  # Keep original time
+            
+            # Convert to minutes and ensure at least 15 minutes
+            minutes = max(int(adjusted_hours * 60), 15)
+            
             adjusted_content.append({
                 "title": topic["title"],
-                "minutes": adjusted_hours * 60  # convert to minutes
+                "minutes": minutes
             })
         
         # Pomodoro settings
-        pomodoro_study = 25
+        pomodoro_study = 25  # Standard pomodoro session length
         pomodoro_break = 5
         pomodoro_total = pomodoro_study + pomodoro_break
         daily_minutes = hours_per_day * 60
+        
+        # Calculate total days based on adjusted content
+        total_minutes = sum(item["minutes"] for item in adjusted_content)
+        total_pomodoros = total_minutes / pomodoro_study
+        total_pomodoro_minutes = total_pomodoros * pomodoro_total
+        estimated_days = max(1, round(total_pomodoro_minutes / daily_minutes))
+        
+        # Check if plan can fit within requested months
+        max_days = months * 30
+        if estimated_days > max_days:
+            # If plan exceeds requested months, display warning
+            warning = (f"⚠️ **Note:** Based on your course topics and daily commitment of {hours_per_day} hours, "
+                      f"it would take approximately {estimated_days} days to complete this course, "
+                      f"which exceeds your {months}-month timeframe.\n\n"
+                      "The plan has been adjusted to fit your timeframe by focusing on the most important topics.\n\n")
+        else:
+            warning = ""
 
         plan = []
         current_day = 1
@@ -110,28 +148,36 @@ def generate_plan(req: GeneratePlanRequest, authorization: str = Header(None)):
         for topic in adjusted_content:
             title = topic["title"]
             topic_minutes = topic["minutes"]
+            
+            # Skip to next topic if we've exceeded the maximum days
+            if current_day > max_days:
+                break
 
             while topic_minutes > 0:
                 if remaining_minutes < pomodoro_total:
                     # Move to next day if not enough time for one Pomodoro
                     current_day += 1
                     remaining_minutes = daily_minutes
+                    
+                    # Stop if we've exceeded the maximum days
+                    if current_day > max_days:
+                        break
 
                 study_time = min(pomodoro_study, topic_minutes)
                 plan.append(
-                    f"### 📅 Day {current_day}\n\n\n\n"
-                    f"- 📓 Study: {title}\n"
-                    f"- ⏰ Duration: {study_time} mins\n"
-                    f"- 😌 Break: {pomodoro_break} mins\n\n" 
-                    f" ------\n\n"
-                    f" ------\n\n"
-                    )
+                    f"### 📅 Day {current_day}\n\n"
+                    f"- 📓 **Study Topic:** {title}\n"
+                    f"- ⏰ **Duration:** {study_time} mins\n"
+                    f"- 😌 **Break:** {pomodoro_break} mins\n\n" 
+                    f"*Remember to take notes and review what you've learned today.*\n\n"
+                    f"------\n\n"
+                )
 
                 topic_minutes -= study_time
                 remaining_minutes -= pomodoro_total
 
         # Join all into a single plan string
-        plan_text = "\n".join(plan)
+        plan_text = warning + "\n".join(plan)
 
         return GeneratePlanResponse(score=score, plan=plan_text)
     

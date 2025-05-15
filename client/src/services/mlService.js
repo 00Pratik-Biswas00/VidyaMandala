@@ -41,36 +41,33 @@ api.interceptors.response.use(
 
 export const mlService = {
   // Update the endpoints to match the FastAPI routes
-  generateLearningPlan: async (courseId, months, hours, score) => {
-    try {
-      if (!courseId) {
-        throw new Error("Course ID is required for plan generation");
-      }
-
-      // Ensure all parameters are valid
-      const validMonths = Math.max(1, parseInt(months) || 1);
-      const validHours = Math.max(1, parseInt(hours) || 1);
-      const validScore = Math.max(0, Math.min(5, parseInt(score) || 0));
-
-      console.log(
-        `Generating plan for course: ${courseId}, months: ${validMonths}, hours: ${validHours}, score: ${validScore}`
-      );
-
-      // CHANGED: Fixed the path to match the FastAPI router prefix
-      const response = await api.post("/learning/generate-plan", {
-        courseId: courseId,
-        months: validMonths,
-        hours: validHours,
-        score: validScore,
-      });
-
-      console.log("Plan generation response status:", response.status);
-      return response.data;
-    } catch (error) {
-      console.error("Failed to generate learning plan:", error);
-      throw error;
+generateLearningPlan: async (courseId, months, hours, score) => {
+  try {
+    if (!courseId) {
+      throw new Error('Course ID is required for plan generation');
     }
-  },
+    
+    // Ensure all parameters are valid
+    const validMonths = Math.max(1, parseInt(months) || 1);
+    const validHours = Math.max(1, parseInt(hours) || 1);
+    const validScore = Math.max(0, Math.min(5, parseInt(score) || 0));
+    
+    console.log(`Generating plan for course: ${courseId}, months: ${validMonths}, hours: ${validHours}, score: ${validScore}`);
+    
+    const response = await api.post('/learning/generate-plan', {
+      courseId: courseId,
+      months: validMonths,
+      hours: validHours,
+      score: validScore
+    });
+    
+    console.log("Plan generation response status:", response.status);
+    return response.data;
+  } catch (error) {
+    console.error("Failed to generate learning plan:", error);
+    throw error;
+  }
+},
 
   // Also fix the quiz endpoint
   getCourseQuiz: async (courseId) => {

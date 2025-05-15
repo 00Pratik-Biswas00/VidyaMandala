@@ -1,9 +1,11 @@
-import os
-import requests
+import re
 from typing import Dict, List, Optional, Union
 from datetime import datetime, timedelta
 import json
 from fastapi import HTTPException
+import requests
+import os
+import random
 
 class CourseDataFetcher:
     """Fetch course data from the backend for ML processing"""
@@ -44,13 +46,30 @@ class CourseDataFetcher:
         course_data = self.get_course_data(course_id, auth_token)
         return course_data.get("topics", [])
 
+def parse_duration(duration_str: str) -> int:
+    """Parse duration string (like '40min') into minutes"""
+    try:
+        # Extract numbers from the string
+        minutes = int(re.search(r'(\d+)', duration_str).group(1))
+        
+        # If the duration is in hours (e.g., '1h 30min'), convert to minutes
+        if 'h' in duration_str:
+            hours_match = re.search(r'(\d+)h', duration_str)
+            if hours_match:
+                hours = int(hours_match.group(1))
+                minutes += hours * 60
+                
+        return minutes
+    except (AttributeError, ValueError):
+        # Default to 60 minutes if parsing fails
+        return 60
+
 def get_mcq_questions(course_id: str, auth_token: str, num_questions: int = 5) -> List[Dict]:
-    """Get MCQ questions for a specific course"""
+    """Get random MCQ questions for a specific course"""
     data_fetcher = CourseDataFetcher()
     all_mcqs = data_fetcher.get_course_mcqs(course_id, auth_token)
     
     # If we have more MCQs than needed, randomly select a subset
-    import random
     if len(all_mcqs) > num_questions:
         return random.sample(all_mcqs, num_questions)
     return all_mcqs
@@ -64,7 +83,7 @@ def get_course_topics_for_plan(course_id: str, auth_token: str) -> List[Dict]:
     return [
         {
             "title": topic["title"],
-            "base_hours": topic.get("baseHours", 1)
+            "base_hours": parse_duration(topic.get("duration", "60min")) / 60  # Convert minutes to hours
         }
         for topic in topics
     ]
