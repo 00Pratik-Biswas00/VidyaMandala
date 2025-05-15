@@ -280,7 +280,7 @@ const LearningPlan = () => {
   if (!isEnrolled && !error) {
     return (
       <div>
-        <Header/>
+        <Header />
         <div className="min-h-screen bg-gradient-to-b from-blue-950 to-black flex items-center justify-center text-white">
           <div className="text-center p-8 max-w-lg">
             <h2 className="text-2xl font-bold mb-4">Enrollment Required</h2>
@@ -310,33 +310,36 @@ const LearningPlan = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-blue-950 to-black flex items-center justify-center text-white">
-        <div className="text-center p-8 max-w-lg">
-          <h2 className="text-2xl font-bold mb-4">Error</h2>
-          <p className="mb-6">{error}</p>
-          <button
-            onClick={() => {
-              setError(null);
-              // Don't reset anything else - keep courseId and other state intact
-              if (course) {
-                // If we have the course, just go back to the input step
-                setStep("input");
-              } else if (courseId) {
-                // If we have courseId but no course, try fetching again
-                window.location.reload();
-              } else {
-                // If no courseId, return to courses page
-                navigate("/");
-              }
-            }}
-            className="bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-700"
-          >
-            {course
-              ? "Try Again"
-              : courseId
-              ? "Reload Page"
-              : "Back to Courses"}
-          </button>
+      <div>
+        <Header/>
+        <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900 flex items-center justify-center text-white">
+          <div className="text-center p-8 max-w-lg">
+            <h2 className="text-2xl font-bold mb-4">Error</h2>
+            <p className="mb-6">{error}</p>
+            <button
+              onClick={() => {
+                setError(null);
+                // Don't reset anything else - keep courseId and other state intact
+                if (course) {
+                  // If we have the course, just go back to the input step
+                  setStep("input");
+                } else if (courseId) {
+                  // If we have courseId but no course, try fetching again
+                  window.location.reload();
+                } else {
+                  // If no courseId, return to courses page
+                  navigate("/");
+                }
+              }}
+              className="bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-700"
+            >
+              {course
+                ? "Try Again"
+                : courseId
+                ? "Reload Page"
+                : "Back to Courses"}
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -344,10 +347,10 @@ const LearningPlan = () => {
 
   return (
     <>
-      <Header/> 
+      <Header />
       <Particle />
       <section className="flex flex-col items-center min-h-screen bg-gradient-to-b from-blue-950 to-black text-white p-10 pb-24">
-        <h1 className="z-20 text-4xl font-bold mb-10 font-montserrat">
+        <h1 className="z-20 text-lg px-4 font-semibold mb-10 truncate max-w-md text-center  bg-gray-800 bg-opacity-70 border border-gray-600 rounded-3xl py-3 shadow-sm tracking-wider">
           Daily Learning Plan Generator
         </h1>
 
@@ -366,24 +369,24 @@ const LearningPlan = () => {
               plan!
             </p>
             <div className="z-20 flex flex-col items-center justify-center gap-5 bg-blue-950 p-7 rounded-2xl w-full max-w-lg">
-              <label className="w-full text-white font-mono text-lg flex flex-col gap-2">
+              <label className="w-full text-white text-lg flex flex-col gap-2">
                 Expected Completion timeframe (Months)?
                 <input
                   type="number"
                   placeholder="e.g. 6"
                   min="1"
-                  className="px-4 py-2 text-black bg-gray-200 font-mono rounded-md focus:outline-none"
+                  className="px-4 py-2 text-black bg-gray-200 rounded-md focus:outline-none"
                   value={months}
                   onChange={(e) => setMonths(e.target.value)}
                 />
               </label>
-              <label className="w-full text-white font-mono text-lg flex flex-col gap-2">
+              <label className="w-full text-white text-lg flex flex-col gap-2">
                 Daily study commitment (Hours)?
                 <input
                   type="number"
                   placeholder="e.g. 3"
                   min="1"
-                  className="px-4 py-2 text-black bg-gray-200 font-mono rounded-md focus:outline-none"
+                  className="px-4 py-2 text-black bg-gray-200 rounded-md focus:outline-none"
                   value={hours}
                   onChange={(e) => setHours(e.target.value)}
                 />
@@ -391,7 +394,7 @@ const LearningPlan = () => {
               <button
                 onClick={handleStartQuiz}
                 disabled={quizLoading}
-                className="bg-blue-600 hover:bg-blue-700 font-ubuntu font-semibold text-white px-6 py-2 rounded-md w-full md:w-1/2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-blue-600 hover:bg-blue-700 u font-semibold text-white px-6 py-2 rounded-md w-full md:w-1/2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {quizLoading ? "Loading Quiz..." : "Start Quiz"}
               </button>
@@ -401,14 +404,14 @@ const LearningPlan = () => {
 
         {step === "quiz" && (
           <div className="z-20 flex flex-col gap-6 bg-blue-950 p-7 rounded-2xl w-full max-w-3xl">
-            <h2 className="text-2xl font-semibold font-montserrat text-center">
+            <h2 className="text-2xl font-semibold  text-center">
               Quiz - Answer {questions.length} Questions
             </h2>
             <div className="max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
               {questions.map((q, idx) => (
                 <div
                   key={q.id}
-                  className="text-white font-mono bg-blue-900/30 p-4 rounded-lg mb-4"
+                  className="text-white  bg-blue-900/30 p-4 rounded-lg mb-4"
                 >
                   <p className="mb-2">
                     <strong>Q{idx + 1}:</strong> {q.question}
@@ -444,7 +447,7 @@ const LearningPlan = () => {
             </div>
             <button
               onClick={handleSubmitQuiz}
-              className="bg-green-600 hover:bg-green-700 font-ubuntu font-semibold text-white px-4 py-2 rounded-md mx-auto mt-4"
+              className="bg-green-600 hover:bg-green-700 font-semibold text-white px-4 py-2 rounded-md mx-auto mt-4"
             >
               Submit Quiz
             </button>
@@ -453,10 +456,10 @@ const LearningPlan = () => {
 
         {step === "result" && result && (
           <div className="z-20 flex flex-col gap-4 bg-blue-900 p-7 rounded-2xl w-full max-w-3xl">
-            <h2 className="text-3xl font-bold font-montserrat">
+            <h2 className="text-3xl font-bold ">
               Your Personalized Plan
             </h2>
-            <p className="text-lg font-mono">Score: {result.score}/5</p>
+            <p className="text-lg ">Score: {result.score}/5</p>
             <ReactMarkdown
               components={{
                 h1: ({ ...props }) => (
@@ -464,7 +467,7 @@ const LearningPlan = () => {
                 ),
                 h2: ({ ...props }) => (
                   <h2
-                    className="text-xl font-playfair font-semibold text-gray-50"
+                    className="text-xl font-semibold text-gray-50"
                     {...props}
                   />
                 ),
@@ -475,16 +478,16 @@ const LearningPlan = () => {
                   />
                 ),
                 p: ({ ...props }) => (
-                  <p className="text-gray-50 font-lato" {...props} />
+                  <p className="text-gray-50 " {...props} />
                 ),
                 li: ({ ...props }) => (
                   <li
-                    className="ml-6 list-disc text-gray-50 font-lato"
+                    className="ml-6 list-disc text-gray-50 "
                     {...props}
                   />
                 ),
                 pre: ({ ...props }) => (
-                  <pre className="ml-6 text-gray-50 font-lato" {...props} />
+                  <pre className="ml-6 text-gray-50" {...props} />
                 ),
               }}
             >
@@ -500,7 +503,7 @@ const LearningPlan = () => {
                 setAnswers({});
                 setResult(null);
               }}
-              className="bg-blue-600 hover:bg-blue-700 font-ubuntu font-semibold text-white px-4 py-2 rounded-md mt-6"
+              className="bg-blue-600 hover:bg-blue-700 font-semibold text-white px-4 py-2 rounded-md mt-6"
             >
               Generate Again
             </button>

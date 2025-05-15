@@ -85,13 +85,13 @@ const PdfSummary = () => {
       <div className="z-20 absolute w-full"><Header/></div>
       <Particle />
       <section className="  flex flex-col items-center min-h-screen bg-gradient-to-b from-blue-950 to-black text-white p-24">
-        <h1 className="z-20 text-4xl font-bold mb-10 font-montserrat">
+        <h1 className="z-20 text-lg px-4 font-semibold mb-10 truncate max-w-md text-center  bg-gray-800 bg-opacity-70 border border-gray-600 rounded-full py-3 shadow-sm tracking-wider">
           Practice Question and Answers from PDFs
         </h1>
 
         <div className="z-20 flex flex-col  gap-4 w-full max-w-2xl mb-10 items-center justify-center">
           {/* PDF Upload Button */}
-          <label className="w-full sm:w-auto bg-transparent border border-white hover:bg-slate-600 duration-500  text-white font-mono px-4 py-2 rounded-md cursor-pointer text-center">
+          <label className="w-full sm:w-auto bg-transparent border border-white hover:bg-slate-600 duration-500  text-white  px-4 py-2 rounded-md cursor-pointer text-center">
             <input
               type="file"
               accept="application/pdf"
@@ -102,7 +102,7 @@ const PdfSummary = () => {
           </label>
 
           {pdfFile && (
-            <p className="text-green-300 font-mono">
+            <p className="text-green-300 ">
               {pdfFile.name} is uploaded ✅
             </p>
           )}
@@ -111,7 +111,7 @@ const PdfSummary = () => {
           <div className="flex  items-center justify-center gap-5">
             <button
               onClick={handleGenerateQnA}
-              className="bg-blue-600 hover:bg-blue-800 font-ubuntu duration-500 font-medium text-white px-4 py-2 rounded-md w-full sm:w-auto"
+              className="bg-gradient-to-r from-blue-400 to-blue-700 hover:from-blue-700 hover:to-blue-700 duration-500 font-medium text-white px-4 py-2 rounded-md w-full sm:w-auto"
             >
               Generate QnA
             </button>
@@ -119,7 +119,7 @@ const PdfSummary = () => {
             {/* Summary Button */}
             <button
               onClick={handleGenerateSummary}
-              className="bg-blue-800 hover:bg-blue-600 duration-500 font-ubuntu font-medium text-white px-4 py-2 rounded-md "
+              className="bg-gradient-to-r from-blue-400 to-blue-700 hover:from-blue-700 hover:to-blue-800 duration-500 font-medium text-white px-4 py-2 rounded-md "
               disabled={loading}
             >
               {loading ? "Generating..." : "Generate Summary"}
@@ -170,7 +170,7 @@ const PdfSummary = () => {
             </div>{" "}
             <button
               onClick={handleDownloadPDF}
-              className=" bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md font-ubuntu"
+              className=" bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md"
             >
               Download PDF
             </button>
