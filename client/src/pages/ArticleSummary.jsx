@@ -159,9 +159,9 @@ const ArticleSummary = () => {
 
   return (
     <>
-      <Header/>
+      <div className="z-20 absolute w-full"><Header/></div>
       <Particle />
-      <section className="flex flex-col items-center min-h-screen bg-gradient-to-b from-blue-950 to-black text-white p-10 pb-24">
+      <section className="flex flex-col items-center min-h-screen bg-gradient-to-b from-blue-950 to-black text-white p-24">
         <h1 className="text-4xl font-bold mb-10 font-montserrat">
           Practice Question and Answers from Articles
         </h1>
