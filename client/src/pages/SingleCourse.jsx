@@ -634,9 +634,11 @@ const SingleCourse = () => {
             </div>
 
             <div className="flex flex-col items-end gap-2 border-t border-gray-800 pt-4 w-full">
-              <button className="px-6 py-2 text-sm font-semibold rounded-full bg-yellow-600 text-white hover:bg-yellow-700 transition-all duration-300 mt-2">
-                Start Mock Interview
-              </button>
+              <Link to={"/interview"}>
+                <button className="px-6 py-2 text-sm font-semibold rounded-full bg-yellow-600 text-white hover:bg-yellow-700 transition-all duration-300 mt-2">
+                  Start Mock Interview
+                </button>
+              </Link>
             </div>
           </section>
         </main>
