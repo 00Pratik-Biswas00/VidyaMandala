@@ -304,12 +304,13 @@ const SingleCourse = () => {
           <p className="mb-6">
             {error || "The requested course could not be found."}
           </p>
-          <button
-            onClick={() => useNavigate("/")}
+          <Link
+            to="/"
+            // onClick={() => useNavigate("/")}
             className="bg-blue-600 px-6 py-2 rounded-lg hover:bg-blue-700"
           >
             Back to Courses
-          </button>
+          </Link>
         </div>
       </div>
     );
@@ -337,10 +338,13 @@ const SingleCourse = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            <button className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition duration-200">
+            <Link
+              to="/daily-learning-plan"
+              className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition duration-200"
+            >
               <AirVent size={16} className="hidden sm:block" />
               <span>Daily Plan Generator</span>
-            </button>
+            </Link>
 
             <button
               onClick={handleEnrollCourse}
@@ -636,29 +640,28 @@ const SingleCourse = () => {
           </section>
         </main>
       </div>
-      {
-        showEnrollmentPrompt && (
-          <div className="fixed inset-x-0 bottom-8 flex justify-center z-50 animate-fade-in-up">
-            <div className="bg-gray-800 border border-blue-500 shadow-lg rounded-lg px-6 py-4 flex items-center gap-3">
-              <div className="text-blue-400">
-                <ChevronRight size={20} />
-              </div>
-              <div>
-                <p className="text-white font-medium">
-                  You need to enroll in this course first
-                </p>
-                <p className="text-gray-300 text-sm">
-                  Enroll to track your progress and earn grades
-                </p>
-              </div>
-              <button
-                onClick={handleEnrollCourse}
-                className="ml-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
-              >
-                Enroll Now
-              </button>
+      {showEnrollmentPrompt && (
+        <div className="fixed inset-x-0 bottom-8 flex justify-center z-50 animate-fade-in-up">
+          <div className="bg-gray-800 border border-blue-500 shadow-lg rounded-lg px-6 py-4 flex items-center gap-3">
+            <div className="text-blue-400">
+              <ChevronRight size={20} />
             </div>
+            <div>
+              <p className="text-white font-medium">
+                You need to enroll in this course first
+              </p>
+              <p className="text-gray-300 text-sm">
+                Enroll to track your progress and earn grades
+              </p>
+            </div>
+            <button
+              onClick={handleEnrollCourse}
+              className="ml-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+            >
+              Enroll Now
+            </button>
           </div>
+        </div>
       )}
     </div>
   );
