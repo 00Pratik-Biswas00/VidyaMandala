@@ -1,71 +1,89 @@
-# ml-services/learning_plan/planner.py
+import re
+from typing import Dict, List, Optional, Union
+from datetime import datetime, timedelta
+import json
+from fastapi import HTTPException
+import requests
+import os
 import random
 
-# Dummy data: MCQs per topic
-mcq_data = {
-    "Python": [
-        {"q": "What is the output of print(2 ** 3)?", "options": ["6", "8", "9", "5"], "answer": "8"},
-        {"q": "Which keyword is used for function in Python?", "options": ["function", "define", "def", "fun"], "answer": "def"},
-        {"q": "What is a correct syntax to output 'Hello World'?", "options": ["echo('Hello')", "print('Hello World')", "p('Hello')", "write('Hello')"], "answer": "print('Hello World')"},
-        {"q": "Which one is a Python data type?", "options": ["float", "real", "num", "decimal"], "answer": "float"},
-        {"q": "Which symbol is used for comments in Python?", "options": ["//", "#", "--", "/* */"], "answer": "#"},
-        {"q": "What is the output of print(len('abc'))?", "options": ["1", "2", "3", "4"], "answer": "3"},
-        {"q": "Which one is not a Python loop?", "options": ["while", "foreach", "for", "do-while"], "answer": "do-while"},
-        {"q": "What will print(3 == 3) return?", "options": ["True", "False", "None", "Error"], "answer": "True"},
-        {"q": "Which is used to define a block in Python?", "options": ["Braces", "Tabs", "Indentation", "Parentheses"], "answer": "Indentation"},
-        {"q": "Which module is used for regular expressions?", "options": ["regex", "re", "match", "rx"], "answer": "re"}
-    ],
-    # Add more topics as needed
-}
-
-# Dummy metadata
-course_metadata = {
-    "Python": [
-        {"lesson": "Introduction to Python", "time": 60},
-        {"lesson": "Variables and Data Types", "time": 90},
-        {"lesson": "Control Structures", "time": 120},
-        {"lesson": "Functions", "time": 100},
-        {"lesson": "Modules", "time": 80},
-    ]
-}
-
-def get_mcq_questions(topic: str):
-    return random.sample(mcq_data[topic], 5)
-
-def evaluate_mcq_score(topic: str, answers: list):
-    correct_answers = [q["answer"] for q in mcq_data[topic] if q in answers]
-    correct_count = sum(1 for ans in answers if ans["answer"] == mcq_data[topic][ans["index"]]["answer"])
-    return correct_count / 5  # return score out of 1.0
-
-def generate_learning_plan(score: float, months: int, hours_per_day: int):
-    total_study_time = months * 30 * hours_per_day * 60  # in minutes
-
-    lessons = course_metadata["Python"]
-    adjusted_lessons = []
-
-    for lesson in lessons:
-        time = lesson["time"]
-        if score > 0.8:
-            time *= 0.5
-        elif score > 0.6:
-            time *= 0.75
-        adjusted_lessons.append({**lesson, "adjusted_time": int(time)})
-
-    # Now distribute lessons across days
-    daily_plan = []
-    day_plan = []
-    available_time = hours_per_day * 60
-
-    for lesson in adjusted_lessons:
-        if lesson["adjusted_time"] <= available_time:
-            day_plan.append(lesson)
-            available_time -= lesson["adjusted_time"]
-        else:
-            daily_plan.append(day_plan)
-            day_plan = [lesson]
-            available_time = hours_per_day * 60 - lesson["adjusted_time"]
+class CourseDataFetcher:
+    """Fetch course data from the backend for ML processing"""
     
-    if day_plan:
-        daily_plan.append(day_plan)
+    def __init__(self, backend_url: str = None):
+        """Initialize with backend URL"""
+        self.backend_url = backend_url or os.getenv("BACKEND_URL", "http://localhost:8000/api/v1")
+    
+    def get_course_data(self, course_id: str, auth_token: str) -> Dict:
+        """Fetch course data from backend"""
+        try:
+            url = f"{self.backend_url}/ml-data/course/{course_id}"
+            headers = {"Authorization": f"Bearer {auth_token}"}
+            
+            response = requests.get(url, headers=headers)
+            
+            if response.status_code != 200:
+                raise HTTPException(
+                    status_code=response.status_code,
+                    detail=f"Failed to fetch course data: {response.text}"
+                )
+                
+            return response.json()["course"]
+        
+        except Exception as e:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Error fetching course data: {str(e)}"
+            )
+    
+    def get_course_mcqs(self, course_id: str, auth_token: str) -> List[Dict]:
+        """Fetch MCQs for a specific course"""
+        course_data = self.get_course_data(course_id, auth_token)
+        return course_data.get("mcqs", [])
+    
+    def get_course_topics(self, course_id: str, auth_token: str) -> List[Dict]:
+        """Fetch topics for a specific course"""
+        course_data = self.get_course_data(course_id, auth_token)
+        return course_data.get("topics", [])
 
-    return daily_plan
+def parse_duration(duration_str: str) -> int:
+    """Parse duration string (like '40min') into minutes"""
+    try:
+        # Extract numbers from the string
+        minutes = int(re.search(r'(\d+)', duration_str).group(1))
+        
+        # If the duration is in hours (e.g., '1h 30min'), convert to minutes
+        if 'h' in duration_str:
+            hours_match = re.search(r'(\d+)h', duration_str)
+            if hours_match:
+                hours = int(hours_match.group(1))
+                minutes += hours * 60
+                
+        return minutes
+    except (AttributeError, ValueError):
+        # Default to 60 minutes if parsing fails
+        return 60
+
+def get_mcq_questions(course_id: str, auth_token: str, num_questions: int = 5) -> List[Dict]:
+    """Get random MCQ questions for a specific course"""
+    data_fetcher = CourseDataFetcher()
+    all_mcqs = data_fetcher.get_course_mcqs(course_id, auth_token)
+    
+    # If we have more MCQs than needed, randomly select a subset
+    if len(all_mcqs) > num_questions:
+        return random.sample(all_mcqs, num_questions)
+    return all_mcqs
+
+def get_course_topics_for_plan(course_id: str, auth_token: str) -> List[Dict]:
+    """Get course topics formatted for learning plan generation"""
+    data_fetcher = CourseDataFetcher()
+    topics = data_fetcher.get_course_topics(course_id, auth_token)
+    
+    # Format topics for plan generation
+    return [
+        {
+            "title": topic["title"],
+            "base_hours": parse_duration(topic.get("duration", "60min")) / 60  # Convert minutes to hours
+        }
+        for topic in topics
+    ]
