@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const Course = require('../models/Course');
+const CourseProgress = require('../models/Progress');
 const { STATUSCODE } = require('../constants');
 const { createCustomError } = require('../utils/errorHandler');
 const { sendResponse } = require('../utils/responseHandler');
@@ -103,8 +104,11 @@ const unenrollFromCourse = async (req, res, next) => {
       { new: true, runValidators: true }
     );
 
+    // Delete course progress - This is the new part
+    await CourseProgress.findOneAndDelete({ userId, courseId });
+
     sendResponse(res, STATUSCODE.SUCCESS, { 
-      message: 'Successfully unenrolled from course' 
+      message: 'Successfully unenrolled from course and removed progress data' 
     });
   } catch (error) {
     next(error);

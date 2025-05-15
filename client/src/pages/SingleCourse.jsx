@@ -13,8 +13,10 @@ import {
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { courseService } from "../services/courseService";
 import { authService } from "../services/authService";
-import axios from "axios";
 import { enrollmentService } from "../services/enrollmentService";
+import { progressService } from "../services/progressService";
+import logo from "../assets/logo.png";
+
 const scrollbarStyles = `
   .custom-scrollbar::-webkit-scrollbar {
     width: 8px;
@@ -44,6 +46,8 @@ const SingleCourse = () => {
   // Add these new state variables
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [enrollmentLoading, setEnrollmentLoading] = useState(false);
+  const [topicProgress, setTopicProgress] = useState({});
+  const [showEnrollmentPrompt, setShowEnrollmentPrompt] = useState(false);
 
   //sidebar autoclose for mobile screen
   useEffect(() => {
@@ -104,6 +108,52 @@ const SingleCourse = () => {
     }
   }, [course]);
 
+  useEffect(() => {
+    const fetchProgress = async () => {
+      if (course && course._id && authService.isLoggedIn() && isEnrolled) {
+        try {
+          const progress = await progressService.getCourseProgress(course._id);
+
+          // Convert the progress array to an object for easier access
+          const progressMap = {};
+          progress.topics.forEach((topic) => {
+            progressMap[topic.topicId] = {
+              completed: topic.completed,
+              grade: topic.grade,
+            };
+          });
+
+          setTopicProgress(progressMap);
+
+          // Update the topics state with the saved progress
+          setTopics((prevTopics) =>
+            prevTopics.map((topic) => ({
+              ...topic,
+              completed: progressMap[topic.id]?.completed || false,
+              grade: progressMap[topic.id]?.grade || 0,
+            }))
+          );
+        } catch (error) {
+          console.error("Failed to fetch course progress:", error);
+        }
+      } else if (!isEnrolled) {
+        // Reset progress when user is not enrolled
+        setTopicProgress({});
+
+        // Reset topics completion status
+        setTopics((prevTopics) =>
+          prevTopics.map((topic) => ({
+            ...topic,
+            completed: false,
+            grade: 0,
+          }))
+        );
+      }
+    };
+
+    fetchProgress();
+  }, [course, isEnrolled]);
+
   // Function to check if user is already enrolled
   const checkEnrollmentStatus = async (courseId) => {
     const isEnrolled = await enrollmentService.checkEnrollmentStatus(courseId);
@@ -122,6 +172,18 @@ const SingleCourse = () => {
       if (isEnrolled) {
         await enrollmentService.unenrollFromCourse(course._id);
         setIsEnrolled(false);
+
+        // Reset progress after unenrollment
+        setTopicProgress({});
+
+        // Reset topics completion status
+        setTopics((prevTopics) =>
+          prevTopics.map((topic) => ({
+            ...topic,
+            completed: false,
+            grade: 0,
+          }))
+        );
       } else {
         await enrollmentService.enrollInCourse(course._id);
         setIsEnrolled(true);
@@ -140,12 +202,81 @@ const SingleCourse = () => {
     }
   };
 
-  const toggleCompletion = (id) => {
+  const toggleCompletion = async (id) => {
+    if (!authService.isLoggedIn()) {
+      navigate("/login");
+      return;
+    }
+
+    if (!isEnrolled) {
+      // Replace alert with a modal or overlay notification
+      setShowEnrollmentPrompt(true); // Add this state variable
+      setTimeout(() => {
+        setShowEnrollmentPrompt(false);
+      }, 3000); // Hide after 3 seconds
+      return;
+    }
+
+    // Find the topic
+    const topic = topics.find((t) => t.id === id);
+    const newCompletionStatus = !topic.completed;
+
+    // Generate a consistent grade (only generate new if topic wasn't completed before)
+    const newGrade = newCompletionStatus
+      ? topic.completed
+        ? topic.grade
+        : Math.floor(Math.random() * 31) + 70
+      : 0;
+
+    // Optimistically update UI with the new consistent grade
     setTopics((prev) =>
       prev.map((topic) =>
-        topic.id === id ? { ...topic, completed: !topic.completed } : topic
+        topic.id === id
+          ? {
+              ...topic,
+              completed: newCompletionStatus,
+              grade: newGrade,
+            }
+          : topic
       )
     );
+
+    try {
+      // Explicitly include the grade in the API call
+      const result = await progressService.updateTopicStatus(
+        course._id,
+        id,
+        newCompletionStatus,
+        newGrade // Pass the same grade to the backend
+      );
+
+      console.log("Backend response:", result);
+
+      // Update the local progress state with our consistent grade
+      setTopicProgress((prev) => ({
+        ...prev,
+        [id]: {
+          completed: newCompletionStatus,
+          grade: newGrade, // Use our consistent grade
+        },
+      }));
+
+      // No need to update topics again with server grade since we're
+      // enforcing our locally generated grade
+    } catch (error) {
+      console.error("Failed to update topic status:", error);
+
+      // Revert the optimistic update if there's an error
+      setTopics((prev) =>
+        prev.map((topic) =>
+          topic.id === id
+            ? { ...topic, completed: !newCompletionStatus, grade: 0 }
+            : topic
+        )
+      );
+
+      alert("Failed to update progress. Please try again.");
+    }
   };
 
   const completedCount = topics.filter((t) => t.completed).length;
@@ -174,12 +305,13 @@ const SingleCourse = () => {
           <p className="mb-6">
             {error || "The requested course could not be found."}
           </p>
-          <button
-            onClick={() => useNavigate("/")}
+          <Link
+            to="/"
+            // onClick={() => useNavigate("/")}
             className="bg-blue-600 px-6 py-2 rounded-lg hover:bg-blue-700"
           >
             Back to Courses
-          </button>
+          </Link>
         </div>
       </div>
     );
@@ -188,29 +320,25 @@ const SingleCourse = () => {
   return (
     <div className="flex flex-col min-h-screen bg-gray-950 text-white font-sans">
       {/* Navbar */}
-      <header className="bg-gray-900 border-b border-gray-800 py-3 px-4 md:px-6 sticky top-0 z-20 h-16">
+      <header className="bg-gray-900 border-b border-gray-800  px-4 md:px-6 sticky top-0 z-20 h-18">
         <div className="max-w-screen-2xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center ">
             <Link
               to="/"
-              className="flex items-center gap-2 text-gray-300 hover:text-white"
+              className="flex items-center  text-gray-300 hover:text-white"
             >
-              <span className="text-2xl font-bold text-blue-400">Vm.</span>
+              <img src={logo} alt="Vidyamandala logo" className="w-20 h-20 " />
             </Link>
           </div>
 
-          <div className="hidden md:block">
-            <h1 className="text-gray-300 flex items-center justify-center gap-2  truncate max-w-md text-center font-medium bg-gray-800 bg-opacity-70 border border-gray-600 rounded-full text-sm px-4 py-1 shadow-sm tracking-wide">
-              {course.title}
-              <BookDown size={16} />
-            </h1>
-          </div>
-
           <div className="flex items-center gap-3">
-            <button className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition duration-200">
+            <Link
+              to="/daily-learning-plan"
+              className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition duration-200"
+            >
               <AirVent size={16} className="hidden sm:block" />
               <span>Daily Plan Generator</span>
-            </button>
+            </Link>
 
             <button
               onClick={handleEnrollCourse}
@@ -233,14 +361,6 @@ const SingleCourse = () => {
             </button>
           </div>
         </div>
-
-        {/* Mobile Course Title
-        <div className="md:hidden mt-2 px-2">
-         <h1 className="text-gray-300 flex items-center justify-center gap-2  truncate max-w-md text-center font-medium bg-gray-800 bg-opacity-70 border border-gray-600 rounded-full text-sm px-4 py-1 shadow-sm tracking-wide">
-              {course.title}
-              <BookDown size={16} />
-            </h1>
-        </div> */}
       </header>
 
       <div className="flex flex-1 mb-0.5">
@@ -250,7 +370,7 @@ const SingleCourse = () => {
             sidebarOpen ? "w-64 p-4" : "w-16 p-2"
           }`}
         >
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-4 pt-4">
             {sidebarOpen && (
               <h2 className="text-lg font-bold text-white">Course Progress</h2>
             )}
@@ -329,10 +449,17 @@ const SingleCourse = () => {
 
         {/* Main Content */}
         <main
-          className={`flex-1 transition-all p-6 sm:p-12 space-y-10 bg-gray-950 ${
+          className={`flex-1 transition-all p-7 space-y-10 bg-gray-950 ${
             sidebarOpen ? "ml-64" : "ml-16"
           }`}
         >
+          <div className="hidden md:block">
+            <h1 className="text-gray-300 flex items-center justify-center gap-2  truncate max-w-md text-center font-medium bg-gray-800 bg-opacity-70 border border-gray-600 rounded-3xl text-lg  py-3 shadow-sm tracking-wider">
+              {course.title}
+              <BookDown size={20} />
+            </h1>
+          </div>
+
           {topics.map((topic) => (
             <section
               key={topic.id}
@@ -369,15 +496,29 @@ const SingleCourse = () => {
                 <div className="flex items-center gap-4">
                   <button
                     onClick={() => toggleCompletion(topic.id)}
+                    disabled={!isEnrolled}
                     className={`px-4 py-1.5 text-sm font-semibold rounded-full transition-all duration-300 ${
                       topic.completed
                         ? "bg-green-600 text-white hover:bg-green-700"
-                        : "bg-gray-700 text-white hover:bg-gray-600"
+                        : isEnrolled
+                        ? "bg-gray-700 text-white hover:bg-gray-600"
+                        : "bg-gray-600/70 text-gray-400 cursor-not-allowed group-hover:bg-blue-600/30 group-hover:text-blue-200"
+                    }`}
+                    title={!isEnrolled ? "Enroll to track progress" : ""}
+                  >
+                    {topic.completed
+                      ? "Completed"
+                      : isEnrolled
+                      ? "Mark as Done"
+                      : "Enroll to Track"}
+                  </button>
+                  <span
+                    className={`text-sm ${
+                      topic.completed ? "text-green-400" : "text-gray-400"
                     }`}
                   >
-                    {topic.completed ? "Done" : "Mark as Done"}
-                  </button>
-                  <span className="text-sm text-white">Grade: 100%</span>
+                    Grade: {topic.completed ? `${topic.grade}%` : "N/A"}
+                  </span>
                 </div>
               </div>
             </section>
@@ -502,6 +643,29 @@ const SingleCourse = () => {
           </section>
         </main>
       </div>
+      {showEnrollmentPrompt && (
+        <div className="fixed inset-x-0 bottom-8 flex justify-center z-50 animate-fade-in-up">
+          <div className="bg-gray-800 border border-blue-500 shadow-lg rounded-lg px-6 py-4 flex items-center gap-3">
+            <div className="text-blue-400">
+              <ChevronRight size={20} />
+            </div>
+            <div>
+              <p className="text-white font-medium">
+                You need to enroll in this course first
+              </p>
+              <p className="text-gray-300 text-sm">
+                Enroll to track your progress and earn grades
+              </p>
+            </div>
+            <button
+              onClick={handleEnrollCourse}
+              className="ml-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+            >
+              Enroll Now
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

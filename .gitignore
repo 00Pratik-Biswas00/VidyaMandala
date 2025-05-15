@@ -135,4 +135,15 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+
+# python virtual env
+.venv
+*__pycache__*
 .idx
+
+
+# pdf and png
+*.pdf
+*.png
+ml-services/pdf_qa_summary_gen/__pycache__/pdf_summary.cpython-310.pyc
