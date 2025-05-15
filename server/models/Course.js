@@ -1,5 +1,32 @@
 const mongoose = require('mongoose');
 
+const MCQSchema = new mongoose.Schema({
+  question: {
+    type: String,
+    required: true
+  },
+  options: {
+    type: [String],
+    required: true,
+    validate: [val => val.length >= 2, 'At least 2 options are required']
+  },
+  answer: {
+    type: String,
+    required: true,
+    validate: [
+      function(val) {
+        return this.options.includes(val);
+      },
+      'Answer must be one of the options'
+    ]
+  },
+  difficulty: {
+    type: String,
+    enum: ['easy', 'medium', 'hard'],
+    default: 'medium'
+  }
+});
+
 const TopicSchema = new mongoose.Schema({
   id: {
     type: String,
@@ -45,7 +72,8 @@ const CourseSchema = new mongoose.Schema({
     type: String,
     default: 'https://placehold.co/600x400'
   },
-  topics: [TopicSchema]
+  topics: [TopicSchema],
+  mcqs: [MCQSchema]
 }, { timestamps: true });
 
 module.exports = mongoose.model('Course', CourseSchema);

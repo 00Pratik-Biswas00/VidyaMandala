@@ -333,7 +333,7 @@ const SingleCourse = () => {
 
           <div className="flex items-center gap-3">
             <Link
-              to="/daily-learning-plan"
+              to={`/daily-learning-plan/${course._id}`}
               className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition duration-200"
             >
               <AirVent size={16} className="hidden sm:block" />

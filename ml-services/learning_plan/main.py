@@ -1,9 +1,10 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List, Dict
+from typing import List, Dict, Optional
 import random
 from fastapi import APIRouter
+from .planner import get_mcq_questions, get_course_topics_for_plan
 
 learning_plan_router = APIRouter()
 
@@ -13,8 +14,10 @@ class QuizQuestion(BaseModel):
     question: str
     options: List[str]
     answer: str
+    difficulty: Optional[str] = "medium"
 
 class GeneratePlanRequest(BaseModel):
+    courseId: str
     months: int
     hours: int
     score: int
@@ -23,82 +26,38 @@ class GeneratePlanResponse(BaseModel):
     score: int
     plan: str
 
-# ---- Dummy Questions ----
-quiz_questions = [
-    QuizQuestion(
-        id=1,
-        question="What is the time complexity of binary search?",
-        options=["O(n)", "O(log n)", "O(n log n)", "O(1)"],
-        answer="O(log n)"
-    ),
-    QuizQuestion(
-        id=2,
-        question="Which data structure uses LIFO?",
-        options=["Queue", "Stack", "Linked List", "Array"],
-        answer="Stack"
-    ),
-    QuizQuestion(
-        id=3,
-        question="Which language is known as the backbone of web development?",
-        options=["Java", "Python", "HTML", "C++"],
-        answer="HTML"
-    ),
-    QuizQuestion(
-        id=4,
-        question="Which keyword is used to define a function in Python?",
-        options=["function", "fun", "def", "define"],
-        answer="def"
-    ),
-    QuizQuestion(
-        id=5,
-        question="Which protocol is used to fetch web pages?",
-        options=["FTP", "SMTP", "HTTP", "SSH"],
-        answer="HTTP"
-    ),
-    QuizQuestion(
-        id=6,
-        question="Which operator is used for exponentiation in Python?",
-        options=["^", "**", "//", "%"],
-        answer="**"
-    ),
-    QuizQuestion(
-        id=7,
-        question="What does CSS stand for?",
-        options=["Colorful Style Sheets", "Cascading Style Sheets", "Creative Style Sheets", "Computer Style Sheets"],
-        answer="Cascading Style Sheets"
-    ),
-    QuizQuestion(
-        id=8,
-        question="Which of these is a JavaScript framework?",
-        options=["Laravel", "Django", "React", "Flask"],
-        answer="React"
-    ),
-    QuizQuestion(
-        id=9,
-        question="What does 'pip' stand for in Python?",
-        options=["Python Install Package", "Pip Installs Packages", "Packages in Python", "Program in Python"],
-        answer="Pip Installs Packages"
-    ),
-    QuizQuestion(
-        id=10,
-        question="Which is not a programming language?",
-        options=["Python", "HTML", "Java", "C#"],
-        answer="HTML"
-    ),
-]
-
 # ---- Routes ----
-
-@learning_plan_router.get("/quiz")
-def get_quiz():
-    selected_questions = random.sample(quiz_questions, 5)
-    return {"questions": [q.dict() for q in selected_questions]}
+@learning_plan_router.get("/quiz/{course_id}")
+def get_quiz(course_id: str, authorization: str = Header(None)):
+    """Get quiz questions for a specific course"""
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Authorization token required")
+    
+    # Extract token from Authorization header
+    token = authorization.replace("Bearer ", "") if authorization.startswith("Bearer ") else authorization
+    
+    try:
+        # Get course-specific MCQs from backend
+        mcqs = get_mcq_questions(course_id, token, num_questions=5)
+        return {"questions": mcqs}
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get quiz: {str(e)}")
 
 @learning_plan_router.post("/generate-plan")
-def generate_plan(req: GeneratePlanRequest):
+def generate_plan(req: GeneratePlanRequest, authorization: str = Header(None)):
+    """Generate a learning plan for a specific course"""
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Authorization token required")
+    
+    # Extract token from Authorization header
+    token = authorization.replace("Bearer ", "") if authorization.startswith("Bearer ") else authorization
+    
     months = req.months
     hours_per_day = req.hours
     score = req.score
+    course_id = req.courseId
 
     if months <= 0 or hours_per_day <= 0:
         return GeneratePlanResponse(
@@ -106,76 +65,77 @@ def generate_plan(req: GeneratePlanRequest):
             plan="Please enter valid months and daily hours to get a personalized plan."
         )
 
-    # Full course topics
-    course_content = [
-        {"title": "Introduction to Programming", "base_hours": 4},
-        {"title": "Variables and Data Types", "base_hours": 3},
-        {"title": "Control Flow", "base_hours": 5},
-        {"title": "Functions", "base_hours": 6},
-        {"title": "Data Structures", "base_hours": 8},
-        {"title": "Object-Oriented Programming", "base_hours": 10},
-        {"title": "Error Handling", "base_hours": 4},
-        {"title": "Modules and Packages", "base_hours": 3},
-        {"title": "File Handling", "base_hours": 4},
-        {"title": "Project: Mini Console App", "base_hours": 12},
-    ]
-
-    # Adjust topic hours based on score
-    adjusted_content = []
-    for topic in course_content:
-        base = topic["base_hours"]
-        if score >= 4:
-            if base <= 5:
-                adjusted_hours = max(int(base * 0.5), 1)
+    try:
+        # Get course-specific topics from backend
+        course_content = get_course_topics_for_plan(course_id, token)
+        
+        if not course_content:
+            return GeneratePlanResponse(
+                score=score,
+                plan="No topics found for this course. Please contact support."
+            )
+            
+        # Adjust topic hours based on score
+        adjusted_content = []
+        for topic in course_content:
+            base = topic["base_hours"]
+            if score >= 4:
+                if base <= 5:
+                    adjusted_hours = max(int(base * 0.5), 1)
+                else:
+                    adjusted_hours = base
+            elif score >= 2:
+                if base <= 5:
+                    adjusted_hours = int(base * 0.75) or 1  # Ensure non-zero
+                else:
+                    adjusted_hours = base
             else:
-                adjusted_hours = base
-        elif score >= 2:
-            if base <= 5:
-                adjusted_hours = int(base * 0.75)
-            else:
-                adjusted_hours = base
-        else:
-            adjusted_hours = base
+                adjusted_hours = base or 1  # Ensure non-zero
 
-        adjusted_content.append({
-            "title": topic["title"],
-            "minutes": adjusted_hours * 60  # convert to minutes
-        })
+            adjusted_content.append({
+                "title": topic["title"],
+                "minutes": adjusted_hours * 60  # convert to minutes
+            })
+        
+        # Pomodoro settings
+        pomodoro_study = 25
+        pomodoro_break = 5
+        pomodoro_total = pomodoro_study + pomodoro_break
+        daily_minutes = hours_per_day * 60
 
-    # Pomodoro settings
-    pomodoro_study = 25
-    pomodoro_break = 5
-    pomodoro_total = pomodoro_study + pomodoro_break
-    daily_minutes = hours_per_day * 60
+        plan = []
+        current_day = 1
+        remaining_minutes = daily_minutes
 
-    plan = []
-    current_day = 1
-    remaining_minutes = daily_minutes
+        for topic in adjusted_content:
+            title = topic["title"]
+            topic_minutes = topic["minutes"]
 
-    for topic in adjusted_content:
-        title = topic["title"]
-        topic_minutes = topic["minutes"]
+            while topic_minutes > 0:
+                if remaining_minutes < pomodoro_total:
+                    # Move to next day if not enough time for one Pomodoro
+                    current_day += 1
+                    remaining_minutes = daily_minutes
 
-        while topic_minutes > 0:
-            if remaining_minutes < pomodoro_total:
-                # Move to next day if not enough time for one Pomodoro
-                current_day += 1
-                remaining_minutes = daily_minutes
+                study_time = min(pomodoro_study, topic_minutes)
+                plan.append(
+                    f"### 📅 Day {current_day}\n\n\n\n"
+                    f"- 📓 Study: {title}\n"
+                    f"- ⏰ Duration: {study_time} mins\n"
+                    f"- 😌 Break: {pomodoro_break} mins\n\n" 
+                    f" ------\n\n"
+                    f" ------\n\n"
+                    )
 
-            study_time = min(pomodoro_study, topic_minutes)
-            plan.append(
-                f"### 📅 Day {current_day}\n\n\n\n"
-                f"- 📓 Study: {title}\n"
-                f"- ⏰ Duration: {study_time} mins\n"
-                f"- 😌 Break: {pomodoro_break} mins\n\n" 
-                f" ------\n\n"
-                f" ------\n\n"
-                )
+                topic_minutes -= study_time
+                remaining_minutes -= pomodoro_total
 
-            topic_minutes -= study_time
-            remaining_minutes -= pomodoro_total
+        # Join all into a single plan string
+        plan_text = "\n".join(plan)
 
-    # Join all into a single plan string
-    plan_text = "\n".join(plan)
-
-    return GeneratePlanResponse(score=score, plan=plan_text)
+        return GeneratePlanResponse(score=score, plan=plan_text)
+    
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate plan: {str(e)}")
