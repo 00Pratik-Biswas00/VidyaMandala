@@ -146,4 +146,3 @@ dist
 # pdf and png
 *.pdf
 diagram.png
-ml-services/pdf_qa_summary_gen/__pycache__/pdf_summary.cpython-310.pyc
