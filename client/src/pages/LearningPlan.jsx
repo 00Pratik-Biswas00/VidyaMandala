@@ -1,5 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
+import ReactMarkdown from "react-markdown";
+
 import Navbar from "../components/Navbar";
 import Particle from "../components/Particle";
 
@@ -129,14 +131,48 @@ const LearningPlan = () => {
         )}
 
         {step === "result" && result && (
-          <div className="z-20 flex flex-col items-center gap-4 bg-blue-950 p-7 rounded-2xl w-full max-w-3xl">
+          <div className="z-20 flex flex-col gap-4 bg-blue-900 p-7 rounded-2xl w-full max-w-3xl">
             <h2 className="text-3xl font-bold font-montserrat">
               Your Personalized Plan
             </h2>
             <p className="text-lg font-mono">Score: {result.score}/5</p>
-            <p className="text-white font-mono mt-4 text-center">
+            <ReactMarkdown
+              components={{
+                h1: ({ ...props }) => (
+                  <h1 className=" text-2xl font-bold text-gray-50" {...props} />
+                ),
+                h2: ({ ...props }) => (
+                  <h2
+                    className=" text-xl font-playfair font-semibold text-gray-50"
+                    {...props}
+                  />
+                ),
+                h3: ({ ...props }) => (
+                  <h3
+                    className=" text-lg font-semibold text-gray-50"
+                    {...props}
+                  />
+                ),
+                p: ({ ...props }) => (
+                  <p className=" text-gray-50 font-lato" {...props} />
+                ),
+                li: ({ ...props }) => (
+                  <li
+                    className="ml-6 list-disc  text-gray-50 font-lato"
+                    {...props}
+                  />
+                ),
+                pre: ({ ...props }) => (
+                  <pre
+                    className="ml-6 list-disc  text-gray-50 font-lato"
+                    {...props}
+                  />
+                ),
+              }}
+            >
               {result.plan}
-            </p>
+            </ReactMarkdown>
+
             <button
               onClick={() => {
                 setStep("input");
