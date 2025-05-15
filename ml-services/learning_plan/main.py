@@ -97,28 +97,85 @@ def get_quiz():
 @learning_plan_router.post("/generate-plan")
 def generate_plan(req: GeneratePlanRequest):
     months = req.months
-    hours = req.hours
+    hours_per_day = req.hours
     score = req.score
 
-    if months <= 0 or hours <= 0:
+    if months <= 0 or hours_per_day <= 0:
         return GeneratePlanResponse(
             score=score,
             plan="Please enter valid months and daily hours to get a personalized plan."
         )
 
-    intensity = "low"
-    if score >= 4:
-        intensity = "high"
-    elif score >= 2:
-        intensity = "medium"
+    # Full course topics
+    course_content = [
+        {"title": "Introduction to Programming", "base_hours": 4},
+        {"title": "Variables and Data Types", "base_hours": 3},
+        {"title": "Control Flow", "base_hours": 5},
+        {"title": "Functions", "base_hours": 6},
+        {"title": "Data Structures", "base_hours": 8},
+        {"title": "Object-Oriented Programming", "base_hours": 10},
+        {"title": "Error Handling", "base_hours": 4},
+        {"title": "Modules and Packages", "base_hours": 3},
+        {"title": "File Handling", "base_hours": 4},
+        {"title": "Project: Mini Console App", "base_hours": 12},
+    ]
 
-    plan = ""
+    # Adjust topic hours based on score
+    adjusted_content = []
+    for topic in course_content:
+        base = topic["base_hours"]
+        if score >= 4:
+            if base <= 5:
+                adjusted_hours = max(int(base * 0.5), 1)
+            else:
+                adjusted_hours = base
+        elif score >= 2:
+            if base <= 5:
+                adjusted_hours = int(base * 0.75)
+            else:
+                adjusted_hours = base
+        else:
+            adjusted_hours = base
 
-    if intensity == "high":
-        plan = f"Great job scoring {score}/5! Based on your {months} months goal and {hours} hours/day availability, here's your plan:\n\n- Focus on advanced topics 5 days a week\n- Weekly mini-projects\n- Monthly assessments\n- Reserve weekends for revision or mock interviews"
-    elif intensity == "medium":
-        plan = f"You scored {score}/5. With {months} months and {hours} hrs/day, your plan is:\n\n- 3 days/week on core concepts\n- 2 days on practice (e.g., Leetcode, Codeforces)\n- Weekly recap sessions\n- Weekend project building"
-    else:
-        plan = f"You scored {score}/5. Let's start slow and steady.\n\n- Spend 3 days a week on basics\n- 1 day/week on real-world applications\n- Regular breaks and revision\n- Use videos and interactive lessons to build understanding"
+        adjusted_content.append({
+            "title": topic["title"],
+            "minutes": adjusted_hours * 60  # convert to minutes
+        })
 
-    return GeneratePlanResponse(score=score, plan=plan)
+    # Pomodoro settings
+    pomodoro_study = 25
+    pomodoro_break = 5
+    pomodoro_total = pomodoro_study + pomodoro_break
+    daily_minutes = hours_per_day * 60
+
+    plan = []
+    current_day = 1
+    remaining_minutes = daily_minutes
+
+    for topic in adjusted_content:
+        title = topic["title"]
+        topic_minutes = topic["minutes"]
+
+        while topic_minutes > 0:
+            if remaining_minutes < pomodoro_total:
+                # Move to next day if not enough time for one Pomodoro
+                current_day += 1
+                remaining_minutes = daily_minutes
+
+            study_time = min(pomodoro_study, topic_minutes)
+            plan.append(
+                f"### 📅 Day {current_day}\n\n\n\n"
+                f"- 📓 Study: {title}\n"
+                f"- ⏰ Duration: {study_time} mins\n"
+                f"- 😌 Break: {pomodoro_break} mins\n\n" 
+                f" ------\n\n"
+                f" ------\n\n"
+                )
+
+            topic_minutes -= study_time
+            remaining_minutes -= pomodoro_total
+
+    # Join all into a single plan string
+    plan_text = "\n".join(plan)
+
+    return GeneratePlanResponse(score=score, plan=plan_text)
