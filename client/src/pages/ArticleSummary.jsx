@@ -51,7 +51,7 @@ const ArticleSummary = () => {
 
   const [url, setUrl] = useState("");
   const [quizState, setQuizState] = useState({
-    status: "idle", // 'idle', 'question', 'report'
+    status: "idle", // 'idle', 'question', 'report-ready', 'report'
     summary: "",
     questions: [],
     currentQuestion: "",
@@ -208,13 +208,24 @@ const ArticleSummary = () => {
               >
                 {loadingSubmit ? "Submitting..." : "Submit Answer"}
               </button>
-              <button
-                onClick={handleStopQuiz}
-                className="bg-red-600 hover:bg-red-700 px-4 py-2 duration-500 rounded-md"
-                disabled={loadingStop} // Disable button while loadingStop
-              >
-                {loadingStop ? "Stopping..." : "Stop Quiz"}
-              </button>
+
+              {quizState.status === "report-ready" ? (
+                <button
+                  onClick={handleStopQuiz}
+                  className="bg-yellow-600 hover:bg-yellow-700 px-4 py-2 duration-500 rounded-md"
+                  disabled={loadingStop} // Disable button while loadingStop
+                >
+                  {loadingStop ? "Generating..." : "Final Report"}
+                </button>
+              ) : (
+                <button
+                  onClick={handleStopQuiz}
+                  className="bg-red-600 hover:bg-red-700 px-4 py-2 duration-500 rounded-md"
+                  disabled={loadingStop} // Disable button while loadingStop
+                >
+                  {loadingStop ? "Stopping..." : "Stop Quiz"}
+                </button>
+              )}
             </div>
 
             {quizState.feedback && (
@@ -247,7 +258,6 @@ const ArticleSummary = () => {
               <h2 className="text-3xl font-bold mb-4 text-black font-montserrat">
                 Final Report -
               </h2>
-              {/* <p className="bg-gray-700 p-4 rounded">{quizState.report}</p> */}
 
               <ReactMarkdown
                 components={{
