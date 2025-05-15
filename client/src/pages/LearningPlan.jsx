@@ -8,6 +8,7 @@ import { courseService } from "../services/courseService";
 import { authService } from "../services/authService";
 import { mlService } from "../services/mlService";
 import { enrollmentService } from "../services/enrollmentService"; // Add this import
+import Header from "../components/Header";
 
 const LearningPlan = () => {
   const { courseId } = useParams();
@@ -256,42 +257,51 @@ const LearningPlan = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-blue-950 to-black flex items-center justify-center">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+      <div>
+        <Header />
+        <div className="min-h-screen bg-gradient-to-b from-blue-950 to-black flex items-center justify-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
       </div>
     );
   }
 
   if (checkingEnrollment) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-blue-950 to-black flex items-center justify-center">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+      <div>
+        <Header />
+        <div className="min-h-screen bg-gradient-to-b from-blue-950 to-black flex items-center justify-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
       </div>
     );
   }
 
   if (!isEnrolled && !error) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-blue-950 to-black flex items-center justify-center text-white">
-        <div className="text-center p-8 max-w-lg">
-          <h2 className="text-2xl font-bold mb-4">Enrollment Required</h2>
-          <p className="mb-6">
-            You must be enrolled in {course?.title || "this course"} to generate
-            a learning plan.
-          </p>
-          <div className="flex gap-4 justify-center">
-            <button
-              onClick={() => navigate(`/details/${course?.title || ""}`)}
-              className="bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-700"
-            >
-              Go to Course
-            </button>
-            <button
-              onClick={() => navigate("/")}
-              className="bg-gray-600 px-4 py-2 rounded-lg hover:bg-gray-700"
-            >
-              Browse Courses
-            </button>
+      <div>
+        <Header/>
+        <div className="min-h-screen bg-gradient-to-b from-blue-950 to-black flex items-center justify-center text-white">
+          <div className="text-center p-8 max-w-lg">
+            <h2 className="text-2xl font-bold mb-4">Enrollment Required</h2>
+            <p className="mb-6">
+              You must be enrolled in {course?.title || "this course"} to
+              generate a learning plan.
+            </p>
+            <div className="flex gap-4 justify-center">
+              <button
+                onClick={() => navigate(`/details/${course?.title || ""}`)}
+                className="bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-700"
+              >
+                Go to Course
+              </button>
+              <button
+                onClick={() => navigate("/")}
+                className="bg-gray-600 px-4 py-2 rounded-lg hover:bg-gray-700"
+              >
+                Browse Courses
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -334,6 +344,7 @@ const LearningPlan = () => {
 
   return (
     <>
+      <Header/> 
       <Particle />
       <section className="flex flex-col items-center min-h-screen bg-gradient-to-b from-blue-950 to-black text-white p-10 pb-24">
         <h1 className="z-20 text-4xl font-bold mb-10 font-montserrat">

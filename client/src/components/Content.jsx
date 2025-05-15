@@ -133,7 +133,7 @@ const Content = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 flex items-center justify-center">
+      <div className="min-h-screen  bg-gradient-to-b from-blue-950 to-black flex items-center justify-center">
         <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
       </div>
     );
@@ -141,7 +141,7 @@ const Content = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 flex items-center justify-center">
+      <div className="min-h-screen  bg-gradient-to-b from-blue-950 to-black flex items-center justify-center">
         <div className="text-white text-center">
           <h2 className="text-xl font-semibold mb-4">{error}</h2>
           <button
@@ -156,10 +156,11 @@ const Content = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 pb-28 px-4 pt-10">
+    <div className="min-h-screen  bg-gradient-to-b from-blue-950 to-black pb-28 px-4 pt-10">
       {/* featured courses */}
       <section className="max-w-7xl mx-auto mb-20">
-        <div className="inline-block px-4 py-1 mb-6 border border-green-600 bg-green-700 text-green-200 rounded-2xl text-sm font-medium shadow-sm">
+
+        <div className="ml-14 inline-block px-4 py-1 mb-6 border border-green-600 bg-green-700 text-green-200 rounded-2xl text-sm font-medium shadow-sm">
           {isRecommended ? "💡 Recommended For You" : "🚀 Featured Courses"}
         </div>
         
@@ -185,7 +186,7 @@ const Content = () => {
               breakpoints={{
                 640: { slidesPerView: 1.2 },
                 768: { slidesPerView: 2.2 },
-                1024: { slidesPerView: 3 },
+                1024: { slidesPerView: 3.7 },
                 1280: { slidesPerView: 4 },
               }}
               className="py-4"
@@ -212,7 +213,7 @@ const Content = () => {
       </section>
 
       {/* filter + search */}
-      <section className="max-w-7xl mx-auto mb-10 flex flex-wrap items-center gap-4 justify-between px-2">
+      <section className="max-w-7xl mx-auto mb-10 flex flex-wrap items-center gap-4 justify-between px-6">
         <div className="flex justify-between items-center gap-2">
           <Filter size={20} className="text-gray-400" />
           <select
@@ -262,7 +263,7 @@ const Content = () => {
       </section>
 
       {/* all courses */}
-      <section className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      <section className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-6">
         {filteredCourses.length > 0 ? (
           filteredCourses.map((course, index) => (
             <CourseCard key={course._id} course={course} index={index} />

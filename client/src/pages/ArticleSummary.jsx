@@ -6,6 +6,7 @@ import html2canvas from "html2canvas";
 
 import Navbar from "../components/Navbar";
 import Particle from "../components/Particle";
+import Header from "../components/Header";
 
 // API functions
 const api = axios.create({
@@ -51,7 +52,7 @@ const ArticleSummary = () => {
 
   const [url, setUrl] = useState("");
   const [quizState, setQuizState] = useState({
-    status: "idle", // 'idle', 'question', 'report'
+    status: "idle", // 'idle', 'question', 'report-ready', 'report'
     summary: "",
     questions: [],
     currentQuestion: "",
@@ -158,8 +159,9 @@ const ArticleSummary = () => {
 
   return (
     <>
+      <div className="z-20 absolute w-full"><Header/></div>
       <Particle />
-      <section className="flex flex-col items-center min-h-screen bg-gradient-to-b from-blue-950 to-black text-white p-10 pb-24">
+      <section className="flex flex-col items-center min-h-screen bg-gradient-to-b from-blue-950 to-black text-white p-24">
         <h1 className="text-4xl font-bold mb-10 font-montserrat">
           Practice Question and Answers from Articles
         </h1>
@@ -208,13 +210,24 @@ const ArticleSummary = () => {
               >
                 {loadingSubmit ? "Submitting..." : "Submit Answer"}
               </button>
-              <button
-                onClick={handleStopQuiz}
-                className="bg-red-600 hover:bg-red-700 px-4 py-2 duration-500 rounded-md"
-                disabled={loadingStop} // Disable button while loadingStop
-              >
-                {loadingStop ? "Stopping..." : "Stop Quiz"}
-              </button>
+
+              {quizState.status === "report-ready" ? (
+                <button
+                  onClick={handleStopQuiz}
+                  className="bg-yellow-600 hover:bg-yellow-700 px-4 py-2 duration-500 rounded-md"
+                  disabled={loadingStop} // Disable button while loadingStop
+                >
+                  {loadingStop ? "Generating..." : "Final Report"}
+                </button>
+              ) : (
+                <button
+                  onClick={handleStopQuiz}
+                  className="bg-red-600 hover:bg-red-700 px-4 py-2 duration-500 rounded-md"
+                  disabled={loadingStop} // Disable button while loadingStop
+                >
+                  {loadingStop ? "Stopping..." : "Stop Quiz"}
+                </button>
+              )}
             </div>
 
             {quizState.feedback && (
@@ -247,7 +260,6 @@ const ArticleSummary = () => {
               <h2 className="text-3xl font-bold mb-4 text-black font-montserrat">
                 Final Report -
               </h2>
-              {/* <p className="bg-gray-700 p-4 rounded">{quizState.report}</p> */}
 
               <ReactMarkdown
                 components={{

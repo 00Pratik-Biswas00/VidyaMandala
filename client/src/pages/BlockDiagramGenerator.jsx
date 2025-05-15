@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import Navbar from "../components/Navbar";
 import Particle from "../components/Particle";
+import Header from "../components/Header";
 
 const BlockDiagramGenerator = () => {
   const [text, setText] = useState("");
@@ -40,8 +41,9 @@ const BlockDiagramGenerator = () => {
 
   return (
     <>
+      <div className="z-20 absolute w-full"><Header/></div>
       <Particle />
-      <section className="flex flex-col items-center min-h-screen bg-gradient-to-b from-blue-950 to-black text-white p-14 pb-24">
+      <section className="flex flex-col items-center min-h-screen bg-gradient-to-b from-blue-950 to-black text-white p-24">
         <h1 className="z-20 text-5xl font-bold mb-10 font-serif text-center">
           Generate Block Diagram from Text
         </h1>
