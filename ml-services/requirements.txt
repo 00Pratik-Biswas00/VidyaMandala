@@ -1,0 +1,20 @@
+# flask
+# newspaper3k
+# transformers
+# torch
+# sentence-transformers
+# flask_cors
+
+langchain
+langchain-community
+langchain-google-genai
+beautifulsoup4
+python-dotenv
+readability-lxml
+fastapi
+uvicorn
+google-generativeai
+graphviz
+PyMuPDF
+pypdf
+python-multipart
