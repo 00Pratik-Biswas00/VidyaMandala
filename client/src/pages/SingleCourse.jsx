@@ -15,6 +15,7 @@ import { courseService } from "../services/courseService";
 import { authService } from "../services/authService";
 import { enrollmentService } from "../services/enrollmentService";
 import { progressService } from "../services/progressService";
+import logo from "../assets/logo.png";
 
 const scrollbarStyles = `
   .custom-scrollbar::-webkit-scrollbar {
@@ -304,12 +305,13 @@ const SingleCourse = () => {
           <p className="mb-6">
             {error || "The requested course could not be found."}
           </p>
-          <button
-            onClick={() => useNavigate("/")}
+          <Link
+            to="/"
+            // onClick={() => useNavigate("/")}
             className="bg-blue-600 px-6 py-2 rounded-lg hover:bg-blue-700"
           >
             Back to Courses
-          </button>
+          </Link>
         </div>
       </div>
     );
@@ -318,29 +320,25 @@ const SingleCourse = () => {
   return (
     <div className="flex flex-col min-h-screen bg-gray-950 text-white font-sans">
       {/* Navbar */}
-      <header className="bg-gray-900 border-b border-gray-800 py-3 px-4 md:px-6 sticky top-0 z-20 h-16">
+      <header className="bg-gray-900 border-b border-gray-800  px-4 md:px-6 sticky top-0 z-20 h-18">
         <div className="max-w-screen-2xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center ">
             <Link
               to="/"
-              className="flex items-center gap-2 text-gray-300 hover:text-white"
+              className="flex items-center  text-gray-300 hover:text-white"
             >
-              <span className="text-2xl font-bold text-blue-400">Vm.</span>
+              <img src={logo} alt="Vidyamandala logo" className="w-20 h-20 " />
             </Link>
           </div>
 
-          <div className="hidden md:block">
-            <h1 className="text-gray-300 flex items-center justify-center gap-2  truncate max-w-md text-center font-medium bg-gray-800 bg-opacity-70 border border-gray-600 rounded-full text-sm px-4 py-1 shadow-sm tracking-wide">
-              {course.title}
-              <BookDown size={16} />
-            </h1>
-          </div>
-
           <div className="flex items-center gap-3">
-            <button className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition duration-200">
+            <Link
+              to="/daily-learning-plan"
+              className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition duration-200"
+            >
               <AirVent size={16} className="hidden sm:block" />
               <span>Daily Plan Generator</span>
-            </button>
+            </Link>
 
             <button
               onClick={handleEnrollCourse}
@@ -372,7 +370,7 @@ const SingleCourse = () => {
             sidebarOpen ? "w-64 p-4" : "w-16 p-2"
           }`}
         >
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-4 pt-4">
             {sidebarOpen && (
               <h2 className="text-lg font-bold text-white">Course Progress</h2>
             )}
@@ -451,10 +449,17 @@ const SingleCourse = () => {
 
         {/* Main Content */}
         <main
-          className={`flex-1 transition-all p-6 sm:p-12 space-y-10 bg-gray-950 ${
+          className={`flex-1 transition-all p-7 space-y-10 bg-gray-950 ${
             sidebarOpen ? "ml-64" : "ml-16"
           }`}
         >
+          <div className="hidden md:block">
+            <h1 className="text-gray-300 flex items-center justify-center gap-2  truncate max-w-md text-center font-medium bg-gray-800 bg-opacity-70 border border-gray-600 rounded-3xl text-lg  py-3 shadow-sm tracking-wider">
+              {course.title}
+              <BookDown size={20} />
+            </h1>
+          </div>
+
           {topics.map((topic) => (
             <section
               key={topic.id}
@@ -638,29 +643,28 @@ const SingleCourse = () => {
           </section>
         </main>
       </div>
-      {
-        showEnrollmentPrompt && (
-          <div className="fixed inset-x-0 bottom-8 flex justify-center z-50 animate-fade-in-up">
-            <div className="bg-gray-800 border border-blue-500 shadow-lg rounded-lg px-6 py-4 flex items-center gap-3">
-              <div className="text-blue-400">
-                <ChevronRight size={20} />
-              </div>
-              <div>
-                <p className="text-white font-medium">
-                  You need to enroll in this course first
-                </p>
-                <p className="text-gray-300 text-sm">
-                  Enroll to track your progress and earn grades
-                </p>
-              </div>
-              <button
-                onClick={handleEnrollCourse}
-                className="ml-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
-              >
-                Enroll Now
-              </button>
+      {showEnrollmentPrompt && (
+        <div className="fixed inset-x-0 bottom-8 flex justify-center z-50 animate-fade-in-up">
+          <div className="bg-gray-800 border border-blue-500 shadow-lg rounded-lg px-6 py-4 flex items-center gap-3">
+            <div className="text-blue-400">
+              <ChevronRight size={20} />
             </div>
+            <div>
+              <p className="text-white font-medium">
+                You need to enroll in this course first
+              </p>
+              <p className="text-gray-300 text-sm">
+                Enroll to track your progress and earn grades
+              </p>
+            </div>
+            <button
+              onClick={handleEnrollCourse}
+              className="ml-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+            >
+              Enroll Now
+            </button>
           </div>
+        </div>
       )}
     </div>
   );
