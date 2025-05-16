@@ -1,19 +1,19 @@
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, ChevronDown } from "lucide-react";
 import { authService } from "../services/authService";
 import logo from "../assets/logo.png";
+
 const Header = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // Default to false
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [user, setUser] = useState(null);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
 
   useEffect(() => {
-    // Check authentication status when component mounts
     const checkAuthStatus = () => {
       const loggedIn = authService.isLoggedIn();
       setIsLoggedIn(loggedIn);
-
       if (loggedIn) {
         setUser(authService.getUser());
       }
@@ -21,15 +21,27 @@ const Header = () => {
 
     checkAuthStatus();
 
-    // You could add an event listener to listen for auth changes
-    window.addEventListener("storage", (event) => {
+    const handleStorageChange = (event) => {
       if (event.key === "token") {
         checkAuthStatus();
       }
-    });
+    };
 
+    window.addEventListener("storage", handleStorageChange);
     return () => {
-      window.removeEventListener("storage", checkAuthStatus);
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest("#profile-menu")) {
+        setProfileMenuOpen(false);
+      }
+    };
+    document.addEventListener("click", handleClickOutside);
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
     };
   }, []);
 
@@ -39,12 +51,12 @@ const Header = () => {
       setIsLoggedIn(false);
       setUser(null);
       setMenuOpen(false);
-      // Optional: Redirect to home or login page
       window.location.href = "/";
     } catch (error) {
       console.error("Logout failed:", error);
     }
   };
+
   const getRandomColor = (seed) => {
     const colors = [
       "#f87171",
@@ -63,14 +75,12 @@ const Header = () => {
   };
 
   return (
-    <nav className="w-full bg-gray-950 border-b border-gray-700 py-1">
+    <nav className="w-full bg-gray-950 border-b border-gray-800 py-1 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <Link
-            to="/"
-            className="text-2xl font-extrabold text-blue-400 tracking-wide"
-          >
-            <img src={logo} alt="Vidyamandala logo" className="w-20 h-20 " />
+          <Link to="/" className="flex items-center space-x-2">
+            <img src={logo} alt="Vidyamandala logo" className="w-16 h-16" />
+            <span className="text-2xl font-bold text-blue-400">Vidyamandala</span>
           </Link>
 
           <div className="hidden md:flex items-center space-x-6">
@@ -78,48 +88,56 @@ const Header = () => {
               <>
                 <Link
                   to="/login"
-                  className="px-6 py-2 rounded-md text-blue-400 hover:text-blue-500 bg-gray-800 hover:bg-gray-700 transition-colors ease-in-out duration-200 font-medium"
+                  className="px-5 py-2 rounded-md text-blue-400 hover:text-white border border-blue-400 hover:bg-blue-600 transition font-medium"
                 >
                   Sign In
                 </Link>
                 <Link
                   to="/register"
-                  className="px-6 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors ease-in-out duration-200 font-medium"
+                  className="px-5 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition font-medium"
                 >
                   Register
                 </Link>
               </>
             ) : (
-              <>
-                {user && (
-                  <div className="flex items-center gap-3 text-gray-200 hover:cursor-pointer">
-                    <div
-                      className="w-9 h-9 rounded-full flex items-center justify-center text-white font-semibold border-2 border-white shadow-md"
-                      style={{ backgroundColor: getRandomColor(user.name) }}
-                      title={user.name}
-                    >
-                      {user.name.charAt(0).toUpperCase()}
-                    </div>
-                    {/* <span className="text-sm sm:text-base font-medium">
-                      Welcome
-                    </span> */}
-                  </div>
-                )}
+              user && (
+                <div id="profile-menu" className="relative">
+              <button
+  onClick={() => setProfileMenuOpen((prev) => !prev)}
+  className="flex items-center gap-2 pl-1 pr-3 py-1 bg-gray-800 rounded-full border border-gray-700 hover:bg-gray-700 transition-colors duration-200 shadow-sm"
+>
+  <div
+    className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold"
+    style={{ backgroundColor: getRandomColor(user.name) }}
+    title={user.name}
+  >
+    {user.name.charAt(0).toUpperCase()}
+  </div>
+  <ChevronDown className="w-4 h-4 text-white" />
+</button>
 
-                <button
-                  onClick={handleLogout}
-                  className="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors ease-in-out duration-200 font-medium"
-                >
-                  Logout
-                </button>
-              </>
+                  {profileMenuOpen && (
+                    <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg z-50 overflow-hidden">
+                      <div className="px-4 py-2 text-gray-800 text-sm border-b">
+                        {user.name}
+                      </div>
+                      <button
+                        onClick={handleLogout}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-red-600 hover:text-white transition duration-150"
+                      >
+                        Logout
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )
             )}
           </div>
 
           <div className="md:hidden flex items-center">
             <button
               onClick={() => setMenuOpen(!menuOpen)}
-              className="text-gray-400 hover:text-blue-400 transition-colors ease-in-out duration-200"
+              className="text-gray-400 hover:text-blue-400 transition-colors duration-200"
             >
               {menuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
@@ -134,14 +152,14 @@ const Header = () => {
               <Link
                 to="/login"
                 onClick={() => setMenuOpen(false)}
-                className="block px-6 py-2 rounded-md text-blue-400 hover:text-blue-500 bg-gray-700 hover:bg-gray-600 transition-colors ease-in-out duration-200 font-medium"
+                className="block px-6 py-2 rounded-md text-blue-400 hover:text-white bg-gray-700 hover:bg-gray-600 transition-colors duration-200 font-medium"
               >
                 Sign In
               </Link>
               <Link
                 to="/register"
                 onClick={() => setMenuOpen(false)}
-                className="block px-6 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors ease-in-out duration-200 font-medium"
+                className="block px-6 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors duration-200 font-medium"
               >
                 Register
               </Link>
@@ -155,7 +173,7 @@ const Header = () => {
               )}
               <button
                 onClick={handleLogout}
-                className="w-full text-left px-6 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors ease-in-out duration-200 font-medium"
+                className="w-full text-left px-6 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 transition duration-200 font-medium"
               >
                 Logout
               </button>
