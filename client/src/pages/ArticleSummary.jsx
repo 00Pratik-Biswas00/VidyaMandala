@@ -7,6 +7,7 @@ import html2canvas from "html2canvas";
 import Navbar from "../components/Navbar";
 import Particle from "../components/Particle";
 import Header from "../components/Header";
+import { ArchiveRestoreIcon, LucideAlertCircle, LucideArrowRightCircle } from "lucide-react";
 
 // API functions
 const api = axios.create({
@@ -161,8 +162,8 @@ const ArticleSummary = () => {
     <>
       <div className="z-20 absolute w-full"><Header/></div>
       <Particle />
-      <section className="flex flex-col items-center min-h-screen bg-gradient-to-b from-blue-950 to-black text-white p-24">
-        <h1 className="text-4xl font-bold mb-10 font-montserrat">
+      <section className="flex flex-col items-center min-h-screen bg-gradient-to-b from-slate-950 to-slate-900 text-white p-28">
+        <h1 className="z-20 text-lg px-4 font-semibold mb-10 truncate max-w-md text-center  bg-gray-800 bg-opacity-70 border border-gray-600 rounded-full py-3 shadow-sm tracking-wider">
           Practice Question and Answers from Articles
         </h1>
 
@@ -171,14 +172,14 @@ const ArticleSummary = () => {
           <div className="z-20 flex flex-col  sm:flex-row gap-4 w-full max-w-2xl mb-10">
             <input
               type="text"
-              placeholder="Enter article link"
+              placeholder="Enter article link ..."
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              className="px-4 py-2 text-black bg-gray-200 font-mono rounded-md w-full focus:outline-none"
+              className="px-4 py-2 text-black placeholder:text-gray-700 bg-blue-200 rounded-md w-full focus:outline-none"
             />
             <button
               onClick={handleInitQuiz}
-              className="bg-blue-600 hover:bg-blue-700 font-ubuntu font-semibold  text-white px-1 py-2 rounded-md  w-1/3"
+              className="bg-gradient-to-r from-blue-400 to-blue-700 hover:from-blue-700 hover:to-blue-600  font-semibold  text-white px-1 py-2 rounded-md  w-1/3"
               disabled={loadingStart} // Disable button while loadingStart
             >
               {loadingStart ? "Starting..." : "Start Quiz"}
@@ -190,22 +191,22 @@ const ArticleSummary = () => {
         {(quizState.status === "question" ||
           quizState.status === "report-ready") && (
           <div className="z-20 w-full max-w-5xl space-y-4">
-            <h2 className="text-xl font-medium font-montserrat">Question:</h2>
-            <div className="bg-gray-800 p-4 rounded-md font-open_sans">
+            <h2 className="text-xl font-medium">Question:</h2>
+            <div className="bg-gray-800 p-4 rounded-md">
               <ReactMarkdown>{quizState.currentQuestion}</ReactMarkdown>
             </div>
 
             <textarea
               placeholder="Your answer..."
               ref={answerInputRef}
-              className="w-full p-3 h-[15rem] rounded-md text-black font-lato"
+              className="w-full p-3 h-[15rem] rounded-md text-black"
               rows={4}
             />
 
-            <div className="flex gap-4 font-ubuntu font-medium">
+            <div className="flex gap-4 font-medium">
               <button
                 onClick={handleSubmitAnswer}
-                className="bg-green-600 hover:bg-green-700 px-4 py-2 duration-500 rounded-md"
+                className="bg-gradient-to-b from-green-400 to-green-700 hover:from-green-600 hover:to-green-800 px-4 py-2 duration-500 rounded-md"
                 disabled={loadingSubmit} // Disable button while loadingSubmit
               >
                 {loadingSubmit ? "Submitting..." : "Submit Answer"}
@@ -214,7 +215,7 @@ const ArticleSummary = () => {
               {quizState.status === "report-ready" ? (
                 <button
                   onClick={handleStopQuiz}
-                  className="bg-yellow-600 hover:bg-yellow-700 px-4 py-2 duration-500 rounded-md"
+                  className="bg-gradient-to-b from-yellow-400 to-yellow-700 hover:from-yellow-600 hover:to-yellow-800 px-4 py-2 duration-500 rounded-md"
                   disabled={loadingStop} // Disable button while loadingStop
                 >
                   {loadingStop ? "Generating..." : "Final Report"}
@@ -222,7 +223,7 @@ const ArticleSummary = () => {
               ) : (
                 <button
                   onClick={handleStopQuiz}
-                  className="bg-red-600 hover:bg-red-700 px-4 py-2 duration-500 rounded-md"
+                  className="bg-gradient-to-b from-red-400 to-red-700 hover:from-red-600 hover:to-red-800 px-4 py-2 duration-500 rounded-md"
                   disabled={loadingStop} // Disable button while loadingStop
                 >
                   {loadingStop ? "Stopping..." : "Stop Quiz"}
@@ -232,17 +233,17 @@ const ArticleSummary = () => {
 
             {quizState.feedback && (
               <div className=" space-y-4">
-                <h3 className="text-xl font-medium font-montserrat">
+                <h3 className="text-xl font-medium">
                   Feedback:
                 </h3>
-                <p className="bg-gradient-to-b from-blue-50 to-blue-200  text-black p-3 rounded-md font-lato">
+                <p className="bg-gradient-to-b from-blue-50 to-blue-200  text-black p-3 rounded-md">
                   {quizState.feedback}
                 </p>
 
                 {quizState.status === "question" && (
                   <button
                     onClick={handleNextQuestion}
-                    className="mt-4 bg-blue-500 hover:bg-blue-600 px-4 py-2 duration-500 font-ubuntu font-medium rounded-md"
+                    className="mt-4 bg-gradient-to-r from-blue-400 to-blue-700 hover:from-blue-600 hover:to-blue-800 px-4 py-2 duration-500 font-medium rounded-md"
                     disabled={loadingNext} // Disable button while loadingNext
                   >
                     {loadingNext ? "Generating..." : "Next Question"}
@@ -257,7 +258,7 @@ const ArticleSummary = () => {
         {quizState.status === "report" && (
           <div className="z-20 w-full max-w-5xl mt-2 flex flex-col items-center justify-center gap-5 ">
             <div ref={summaryRef} className="bg-blue-200  p-7 rounded-xl">
-              <h2 className="text-3xl font-bold mb-4 text-black font-montserrat">
+              <h2 className="text-3xl font-bold mb-4 text-black">
                 Final Report -
               </h2>
 
@@ -271,7 +272,7 @@ const ArticleSummary = () => {
                   ),
                   h2: ({ ...props }) => (
                     <h2
-                      className="my-6 text-xl font-playfair font-semibold text-gray-900"
+                      className="my-6 text-xl font-semibold text-gray-900"
                       {...props}
                     />
                   ),
@@ -283,19 +284,19 @@ const ArticleSummary = () => {
                   ),
                   p: ({ ...props }) => (
                     <p
-                      className="mb-4 text-gray-800 leading-relaxed font-lato"
+                      className="mb-4 text-gray-800 leading-relaxed"
                       {...props}
                     />
                   ),
                   li: ({ ...props }) => (
                     <li
-                      className="ml-6 list-disc mb-2 text-gray-800 font-lato"
+                      className="ml-6 list-disc mb-2 text-gray-800"
                       {...props}
                     />
                   ),
                   pre: ({ ...props }) => (
                     <pre
-                      className="ml-6 list-disc mb-2 text-gray-800 font-lato"
+                      className="ml-6 list-disc mb-2 text-gray-800"
                       {...props}
                     />
                   ),
@@ -306,7 +307,7 @@ const ArticleSummary = () => {
             </div>
             <button
               onClick={handleDownloadPDF}
-              className=" bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md font-ubuntu"
+              className=" bg-gradient-to-r from-green-400 to-green-700 hover:from-green-600 hover:to-green-800 text-white px-6 py-2 rounded-md"
             >
               Download PDF
             </button>

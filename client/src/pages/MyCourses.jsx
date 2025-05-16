@@ -43,7 +43,7 @@ const MyCourses = () => {
     return (
       <div>
         <Header />
-        <div className="min-h-screen  bg-gradient-to-b from-blue-950 to-black flex items-center justify-center">
+        <div className="min-h-screen  bg-gradient-to-b from-slate-950 to-slate-900 flex items-center justify-center">
           <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
         </div>
       </div>
@@ -53,7 +53,7 @@ const MyCourses = () => {
   return (
     <div>
       <Header />
-      <div className="min-h-screen  bg-gradient-to-b from-blue-950 to-black pb-28 px-4 pt-10">
+      <div className="min-h-screen  bg-gradient-to-b from-slate-950 to-slate-900 pb-28 px-4 pt-10">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-3xl font-bold text-white mb-8 px-10">My Courses</h1>
 
