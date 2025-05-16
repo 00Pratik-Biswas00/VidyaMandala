@@ -5,6 +5,7 @@ import { PhoneMissed } from 'lucide-react'
 import { courseService } from '../services/courseService'
 import { authService } from '../services/authService'
 import { enrollmentService } from '../services/enrollmentService'
+import axios from 'axios'
 
 
 const api = axios.create({
@@ -12,7 +13,7 @@ const api = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-const initInterview = async (url) => {
+const initInterview = async (course) => {
   const response = await api.post("/init-interview", { course });
   return response.data;
 };
