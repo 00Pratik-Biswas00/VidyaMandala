@@ -44,9 +44,9 @@ const BlockDiagramGenerator = () => {
     <>
       <div className="z-20 absolute w-full"><Header/></div>
       <Particle />
-      <section className="flex flex-col items-center min-h-screen bg-gradient-to-b from-slate-950 to-slate-900 text-white p-24">
-        <h1 className="flex justify-center items-center gap-2 z-20 text-lg px-4 font-semibold mb-10 truncate max-w-md text-center  bg-gray-800 bg-opacity-70 border border-gray-600 rounded-full py-3 shadow-sm tracking-wider">
-          Generate Block Diagram from Text 
+      <section className="flex flex-col items-center min-h-screen bg-gradient-to-b from-slate-950 to-slate-900 text-white p-28">
+        <h1 className="z-20 text-lg px-4 font-semibold mb-10 truncate max-w-md text-center  bg-gray-800 bg-opacity-70 border border-gray-600 rounded-full py-3 shadow-sm tracking-wider">
+          Generate Block Diagram from Text
         </h1>
 
         <div className="z-20 flex flex-col items-center gap-7 w-full max-w-6xl mb-7">
