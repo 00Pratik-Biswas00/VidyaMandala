@@ -1,12 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import os
-import logging
 from dotenv import load_dotenv
 from block_diagram_generator.main import block_diagram_router
 from article_qa_gen.main import article_quiz_router
 from pdf_qa_summary_gen.main import pdf_summary_router
 from learning_plan.main import learning_plan_router
+from course_recommender.main import recommender_router
 from mock_interview.main import mock_interview_router
 from course_recommender.main import recommender_router
 
@@ -105,7 +105,7 @@ if __name__ == "__main__":
     import uvicorn
     
     if not os.getenv("GOOGLE_API_KEY"):
-        logger.warning("GOOGLE_API_KEY not found in .env file!")
+        print("GOOGLE_API_KEY not found in .env file!")
         
     uvicorn.run(app, host="0.0.0.0", port=5000)
 

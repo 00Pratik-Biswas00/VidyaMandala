@@ -37,7 +37,7 @@ correct and what could be improved. Keep it constructive and under 3 sentences:
 Question: {question}
 Answer: {answer}"""
 
-FINAL_REPORT_PROMPT = """Generate a comprehensive learning report based on these interactions.
+FINAL_REPORT_PROMPT = """Generate a comprehensive learning Markdown report based on these interactions.
 Highlight strengths, areas for improvement, and key takeaways from the article:
 
 {interaction_history}"""
