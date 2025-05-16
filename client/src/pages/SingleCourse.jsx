@@ -321,7 +321,7 @@ const SingleCourse = () => {
     <div>
       <div className="flex flex-col min-h-screen bg-gray-950 text-white font-sans">
         {/* Navbar */}
-        <header className="bg-gray-900 border-b border-gray-800  px-4 md:px-6 sticky top-0 z-20 h-18">
+        <header className="bg-gray-900 border-b border-gray-950 px-4 md:px-6 sticky top-0 z-20 h-18">
           <div className="max-w-screen-2xl mx-auto flex items-center justify-between">
             <div className="flex items-center ">
               <Link
@@ -461,7 +461,7 @@ const SingleCourse = () => {
             }`}
           >
             <div className="hidden md:block">
-              <h1 className="text-gray-300 flex items-center justify-center gap-2  truncate max-w-md text-center font-medium bg-gray-800 bg-opacity-70 border border-gray-600 rounded-3xl text-lg  py-3 shadow-sm tracking-wider">
+              <h1 className="text-gray-300 flex items-center justify-center gap-2  truncate max-w-md text-center font-medium bg-gray-800 bg-opacity-70 border border-gray-600 rounded-full text-lg  py-3 shadow-sm tracking-wider">
                 {course.title}
                 <BookDown size={20} />
               </h1>
