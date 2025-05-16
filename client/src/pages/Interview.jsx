@@ -17,7 +17,29 @@ const api = axios.create({
 
 const initQuiz = async (course) => {
   const response = await api.post("/init-interview", { course });
+  const question = response.data.question;
+
+  // Convert the question text into audio and play it
+  playAudio(question);
+
   return response.data;
+};
+
+const playAudio = (text) => {
+  if ('speechSynthesis' in window) {
+    // Create an instance of SpeechSynthesisUtterance
+    const utterance = new SpeechSynthesisUtterance(text);
+
+    // Optionally set properties like voice, rate, pitch
+    utterance.rate = 1; // Speed of the speech
+    utterance.pitch = 1; // Pitch of the speech
+    utterance.volume = 1; // Volume of the speech
+
+    // Speak the text
+    window.speechSynthesis.speak(utterance);
+  } else {
+    console.error('Speech synthesis is not supported in this browser.');
+  }
 };
 
 const selectQuestion = async (questions) => {
@@ -34,12 +56,99 @@ const submitAnswer = async (question, answer, history) => {
   return response.data;
 };
 
+const recordAndSubmitAnswer = async (question, history) => {
+  try {
+    const recordedText = await recordAndTranscribeAudio();
+    
+    if (recordedText) {
+      // Use submitAnswer function to send text to the backend
+      const response = await submitAnswer(question, recordedText, history);
+      return response; // Optionally handle the backend response
+    } else {
+      console.error('No transcription available.');
+    }
+  } catch (error) {
+    console.error('Error during recording or transcribing:', error);
+  }
+};
+
+
+// Record user voice and transcribe it to text
+const recordAndTranscribeAudio = () => {
+  return new Promise((resolve, reject) => {
+    // Check browser support for media devices and Web Speech API
+    if (!navigator.mediaDevices || !window.SpeechRecognition && !window.webkitSpeechRecognition) {
+      reject(new Error('MediaRecorder or SpeechRecognition API is not supported.'));
+      return;
+    }
+
+    // Set up SpeechRecognition
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+
+    recognition.lang = 'en-US'; // Set language
+    recognition.interimResults = false; // Only send finalized transcriptions
+    recognition.maxAlternatives = 1; // Use the top alternative
+
+    const constraints = { audio: true }; // For audio input
+
+    // Access the microphone
+    navigator.mediaDevices.getUserMedia(constraints).then((stream) => {
+      const mediaRecorder = new MediaRecorder(stream);
+
+      // When `start` is called, start Web Speech API transcription
+      mediaRecorder.start();
+      console.log('Recording started. Speak now...');
+
+      // Start listening for audio
+      recognition.start();
+
+      recognition.onresult = (event) => {
+        // Get the transcript from the SpeechRecognition results
+        const transcript = event.results[0][0].transcript;
+        console.log('Transcript:', transcript);
+
+        resolve(transcript);
+
+        // Stop media recorder and transcription
+        mediaRecorder.stop();
+        recognition.stop();
+      };
+
+      recognition.onerror = (event) => {
+        console.error('Speech recognition error:', event.error);
+        reject(event.error);
+
+        // Stop both the recorder and transcription on error
+        mediaRecorder.stop();
+        recognition.stop();
+      };
+      
+      recognition.onend = () => {
+        console.log('Speech recognition ended.');
+      };
+
+      mediaRecorder.onstop = () => {
+        console.log('Recording stopped.');
+        stream.getTracks().forEach((track) => track.stop()); // Stop microphone access
+      };
+    }).catch((error) => {
+      console.error('Error accessing user media:', error);
+      reject(error);
+    });
+  });
+};
+
+
 const generateReport = async (interactionHistory) => {
   const response = await api.post("/generate-report", {
     interaction_history: interactionHistory,
   });
   return response.data;
 };
+
+
+
 
 const Interview = () => {
     const { courseId } = useParams();
@@ -101,6 +210,8 @@ const Interview = () => {
       const selected = await selectQuestion(result.questions);
       console.log(selected);
 
+      // Play the audio of the first question
+      playAudio(selected.current_question);
       setQuizState({
         status: "question",
         questions: selected.updated_list,
@@ -117,38 +228,42 @@ const Interview = () => {
   };
 
   const handleSubmitAnswer = async () => {
-    setLoadingSubmit(true);
-    const answer = answerInputRef.current?.value;
-    if (!answer) return alert("Please write an answer.");
+  setLoadingSubmit(true);
+  if (!recordedText) return alert("Please record an answer first.");
+  
+  try {
+    const result = await submitAnswer(
+      quizState.currentQuestion,
+      recordedText, // Use recorded text instead of textarea answer
+      quizState.interactionHistory
+    );
+    console.log(result);
+    
+    setQuizState((prev) => ({
+      ...prev,
+      interactionHistory: result.interaction_history,
+      feedback: result.feedback,
+      status:
+        quizState.questions.length > 0 ? "question" : "report-ready",
+    }));
 
-    try {
-      const result = await submitAnswer(
-        quizState.currentQuestion,
-        answer,
-        quizState.interactionHistory
-      );
-      console.log(result);
-      
-      setQuizState((prev) => ({
-        ...prev,
-        interactionHistory: result.interaction_history,
-        feedback: result.feedback,
-        status:
-          quizState.questions.length > 0 ? "question" : "report-ready",
-      }));
-    } catch (error) {
-      console.error("Failed to submit answer:", error);
-    } finally {
-      setLoadingSubmit(false);
-    }
-  };
+    setRecordedText(""); // Clear the recorded answer after submission
+  } catch (error) {
+    console.error("Failed to submit answer:", error);
+  } finally {
+    setLoadingSubmit(false);
+  }
+};
 
   const handleNextQuestion = async () => {
     setLoadingNext(true);
     try {
       const selected = await selectQuestion(quizState.questions);
       console.log(selected);
-      
+
+      // Play the audio of the first question
+      playAudio(selected.current_question);
+
       setQuizState((prev) => ({
         ...prev,
         currentQuestion: selected.current_question,
@@ -194,6 +309,23 @@ const Interview = () => {
     pdf.save("article_quiz_report.pdf");
   };
 
+
+  const [isRecording, setIsRecording] = useState(false); // Status of the recording
+const [recordedText, setRecordedText] = useState(""); // Transcribed text result
+
+const handleRecordAnswer = async () => {
+  setIsRecording(true); // Set recording status to true
+  try {
+    const transcript = await recordAndTranscribeAudio(); // Start recording and transcription
+    setRecordedText(transcript); // Set the transcribed text
+    console.log("Transcribed answer:", transcript);
+  } catch (error) {
+    console.error("Recording or transcription failed:", error);
+    alert("Something went wrong while recording. Please try again.");
+  } finally {
+    setIsRecording(false); // Reset recording status
+  }
+};
   return (
     <>
       <div className="z-20 absolute w-full"><Header/></div>
@@ -232,12 +364,42 @@ const Interview = () => {
               <ReactMarkdown>{quizState.currentQuestion}</ReactMarkdown>
             </div>
 
-            <textarea
+            {/* <textarea
               placeholder="Your answer..."
               ref={answerInputRef}
               className="w-full p-3 h-[15rem] rounded-md text-black font-lato"
               rows={4}
-            />
+            /> */}
+
+<div className="flex flex-col gap-4 font-ubuntu font-medium">
+  {/* Record Button */}
+  <button
+    onClick={handleRecordAnswer}
+    className={`bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-md font-semibold ${
+      isRecording ? "opacity-50 cursor-not-allowed" : ""
+    }`}
+    disabled={isRecording} // Disable "Record" button while recording
+  >
+    {isRecording ? "Recording..." : "Record Answer"}
+  </button>
+
+  {/* Show Transcribed Answer */}
+  {recordedText && (
+    <div className="bg-gray-100 p-4 rounded-md text-black">
+      <strong>Transcribed Answer:</strong>
+      <p>{recordedText}</p>
+    </div>
+  )}
+
+  {/* Submit Answer Button */}
+  <button
+    onClick={handleSubmitAnswer}
+    className="bg-green-600 hover:bg-green-700 px-4 py-2 duration-500 rounded-md"
+    disabled={loadingSubmit || !recordedText} // Disable if no transcription
+  >
+    {loadingSubmit ? "Submitting..." : "Submit Answer"}
+  </button>
+</div>
 
             <div className="flex gap-4 font-ubuntu font-medium">
               <button
