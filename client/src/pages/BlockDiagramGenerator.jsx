@@ -1,5 +1,4 @@
-// update 3
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import Particle from "../components/Particle";
 import Header from "../components/Header";
@@ -8,8 +7,17 @@ import { Blocks } from "lucide-react";
 const BlockDiagramGenerator = () => {
   const [text, setText] = useState("");
   const [image, setImage] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); 
+  const [initialLoading, setInitialLoading] = useState(true); 
   const [pdfUrl, setPdfUrl] = useState("");
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setInitialLoading(false);
+    }, 600); 
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -40,12 +48,21 @@ const BlockDiagramGenerator = () => {
     }
   };
 
+  
+  if (initialLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
   return (
     <>
-      <div className="z-20 absolute w-full"><Header/></div>
+      <div className="z-20 absolute w-full"><Header /></div>
       <Particle />
       <section className="flex flex-col items-center min-h-screen bg-gradient-to-b from-slate-950 to-slate-900 text-white p-28">
-        <h1 className="z-20 text-lg px-4 font-semibold mb-10 truncate max-w-md text-center  bg-gray-800 bg-opacity-70 border border-gray-600 rounded-full py-3 shadow-sm tracking-wider">
+        <h1 className="z-20 text-lg px-4 font-semibold mb-10 truncate max-w-md text-center bg-gray-800 bg-opacity-70 border border-gray-600 rounded-full py-3 shadow-sm tracking-wider">
           Generate Block Diagram from Text
         </h1>
 
@@ -68,7 +85,7 @@ const BlockDiagramGenerator = () => {
 
         {image && (
           <div className="z-20 flex flex-col items-center w-full max-w-6xl h-full">
-            <h1 className="z-20 text-3xl font-bold mb-10  text-center">
+            <h1 className="z-20 text-3xl font-bold mb-10 text-center">
               Your Result
             </h1>
             <img
@@ -79,7 +96,7 @@ const BlockDiagramGenerator = () => {
             <a
               href={pdfUrl}
               download="block_diagram.pdf"
-              className=" bg-gradient-to-r from-green-400 to-green-700 hover:from-green-600 hover:to-green-800 text-white px-6 py-2 rounded-md"
+              className="bg-gradient-to-r from-green-400 to-green-700 hover:from-green-600 hover:to-green-800 text-white px-6 py-2 rounded-md"
             >
               Download PDF
             </a>

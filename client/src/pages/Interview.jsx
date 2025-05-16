@@ -6,6 +6,39 @@ import { courseService } from '../services/courseService'
 import { authService } from '../services/authService'
 import { enrollmentService } from '../services/enrollmentService'
 
+
+const api = axios.create({
+  baseURL: "http://localhost:5000/interview",
+  headers: { "Content-Type": "application/json" },
+});
+
+const initInterview = async (url) => {
+  const response = await api.post("/init-interview", { course });
+  return response.data;
+};
+
+const selectQuestion = async (questions) => {
+  const response = await api.post("/select-question", { questions });
+  return response.data;
+};
+
+const submitAnswer = async (question, answer, history) => {
+  const response = await api.post("/submit-answer", {
+    question,
+    answer,
+    interaction_history: history,
+  });
+  return response.data;
+};
+
+const generateReport = async (interactionHistory) => {
+  const response = await api.post("/generate-report", {
+    interaction_history: interactionHistory,
+  });
+  return response.data;
+};
+
+
 function Interview() {
   const { courseId } = useParams();
   const navigate = useNavigate();
@@ -15,7 +48,37 @@ function Interview() {
   const [error, setError] = useState(null)
   const [course, setCourse] = useState(null)
   const [isEnrolled, setIsEnrolled] = useState(false)
+
+  const [MockState, setMockState] = useState({
+      status: "idle", // 'idle', 'question', 'report'
+      questions: [],
+      currentQuestion: "",
+      interactionHistory: [],
+      feedback: "",
+      report: "",
+    });
   
+  const handleInitMock = async () => {
+    setLoadingStart(true);
+    try {
+      const result = await initInterview(course);
+      const selected = await selectQuestion(result.questions);
+
+      setMockState({
+        status: "question",
+        questions: selected.updated_list,
+        currentQuestion: selected.current_question,
+        interactionHistory: [],
+        feedback: "",
+        report: "",
+      });
+    } catch (error) {
+      console.error("Failed to initialize quiz:", error);
+    } finally {
+      setLoadingStart(false);
+    }
+  };
+
   useEffect(() => {
     const loadCourseData = async () => {
       try {
@@ -38,8 +101,13 @@ function Interview() {
           setLoading(false);
           return;
         }
+        const result = {
+            'course_title': response.course.title,
+            'topics_title': response.course.topics.map(topic => topic.title).join('\n')
+        };
+        console.log(result);
         
-        setCourse(response.course);
+        setCourse(result.topics_title);
         
         // Check enrollment status
         const enrolled = await enrollmentService.checkEnrollmentStatus(courseId);
@@ -60,7 +128,68 @@ function Interview() {
     };
     
     loadCourseData();
+    handleInitMock();
   }, [courseId, navigate]);
+
+  const handleSubmitAnswer = async () => {
+    setLoadingSubmit(true);
+    const answer = answerInputRef.current?.value;
+    if (!answer) return alert("Please write an answer.");
+
+    try {
+      const result = await submitAnswer(
+        MockState.currentQuestion,
+        answer,
+        MockState.interactionHistory
+      );
+
+      setMockState((prev) => ({
+        ...prev,
+        interactionHistory: result.interaction_history,
+        feedback: result.feedback,
+        status:
+          MockState.questions.length > 0 ? "question" : "report-ready",
+      }));
+    } catch (error) {
+      console.error("Failed to submit answer:", error);
+    } finally {
+      setLoadingSubmit(false);
+    }
+  };
+
+  const handleNextQuestion = async () => {
+    setLoadingNext(true);
+    try {
+      const selected = await selectQuestion(MockState.questions);
+      setQuizState((prev) => ({
+        ...prev,
+        currentQuestion: selected.current_question,
+        question: selected.updated_list,
+        feedback: "",
+      }));
+      answerInputRef.current.value = "";
+    } catch (error) {
+      console.error("Failed to get next question:", error);
+    } finally {
+      setLoadingNext(false);
+    }
+  };
+
+  const handleStopQuiz = async () => {
+    setLoadingStop(true);
+    try {
+      const result = await generateReport(MockState.interactionHistory);
+      setQuizState((prev) => ({
+        ...prev,
+        status: "report",
+        report: result.report,
+      }));
+    } catch (error) {
+      console.error("Failed to generate report:", error);
+    } finally {
+      setLoadingStop(false);
+    }
+  };
 
   const renderWave = (color) => {
     const bgColor = color === 'blue' ? 'bg-blue-400' : 'bg-green-400'
@@ -169,6 +298,7 @@ function Interview() {
           <button
             className="bg-green-600 hover:bg-green-700 px-6 py-2 rounded-lg font-semibold transition"
             onClick={() => {
+              handleSubmitAnswer()
               setUserSpeaking(false)
               setAiSpeaking(true)
             }}

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { authService } from '../services/authService'
+import Particle from '../components/Particle'
 
 const Register = () => {
   const [name, setName] = useState('')
@@ -13,21 +14,41 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      setError('Please enter a valid email address.')
+      return
+    }
+
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long.')
+      return
+    }
+
     setLoading(true)
-    
+
     try {
       await authService.register({ name, email, password })
       navigate('/')
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to register')
+      const rawMessage = err.response?.data?.message || 'Failed to register'
+
+      if (rawMessage.includes('valid email')) {
+        setError('Please enter a valid email address.')
+      } else if (rawMessage.includes('password') && rawMessage.includes('minimum allowed length')) {
+        setError('Password must be at least 6 characters long.')
+      } else {
+        setError(rawMessage)
+      }
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900 px-4">
-      <div className="w-full max-w-md bg-gray-800 border border-gray-700 rounded-xl shadow-lg p-8 sm:p-10 space-y-6">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-slate-950 to-slate-900 px-4">
+      <Particle/>
+      <div className="z-20 w-full max-w-md bg-gray-900 border border-gray-700 rounded-xl shadow-lg p-8 sm:p-10 space-y-6">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-blue-400 glow-text">Create an Account</h1>
           <p className="mt-2 text-sm text-gray-400">Sign up to get started</p>
@@ -79,7 +100,7 @@ const Register = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 text-white bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition glow-button disabled:opacity-50"
+            className="w-full  text-white bg-gradient-to-r from-blue-400 to-blue-700 hover:from-blue-600 hover:to-blue-800 px-4 py-2 duration-500 rounded-md font-semibold transition glow-button disabled:opacity-50"
           >
             {loading ? 'Creating Account...' : 'Register'}
           </button>
