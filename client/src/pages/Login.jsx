@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import {authService} from '../services/authService'
+import { authService } from '../services/authService'
 
 const Login = () => {
   const [email, setEmail] = useState('')
@@ -12,19 +12,32 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      setError('Please enter a valid email address.')
+      return
+    }
+
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long.')
+      return
+    }
+
     setLoading(true)
-    
+
     try {
-      console.log('Attempting login with:', { email });
-      const response = await authService.login({ email, password });
-      console.log('Login successful:', response);
+      console.log('Attempting login with:', { email })
+      const response = await authService.login({ email, password })
+      console.log('Login successful:', response)
       navigate('/')
     } catch (err) {
-      console.error('Login error:', err);
-      const errorMessage = err.response?.data?.message || 
-                           err.response?.data?.error || 
-                           'Failed to login. Check your credentials.';
-      setError(errorMessage);
+      console.error('Login error:', err)
+      const rawMessage = err.response?.data?.message || err.response?.data?.error || ''
+      if (rawMessage.toLowerCase().includes('invalid') || rawMessage.toLowerCase().includes('not found')) {
+        setError('Invalid email or password. Please try again.')
+      } else {
+        setError(rawMessage || 'Failed to login. Please try again later.')
+      }
     } finally {
       setLoading(false)
     }
@@ -33,7 +46,6 @@ const Login = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900 px-4">
       <div className="w-full max-w-md bg-gray-800 border border-gray-700 rounded-xl shadow-lg p-8 sm:p-10 space-y-6">
-        
         <div className="text-center">
           <h1 className="text-3xl font-bold text-blue-400 glow-text">Sign in to your account</h1>
           <p className="mt-2 text-sm text-gray-400">Welcome back! Please enter your credentials.</p>
