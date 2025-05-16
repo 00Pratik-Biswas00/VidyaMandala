@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import axios from "axios";
 import ReactMarkdown from "react-markdown";
 import jsPDF from "jspdf";
@@ -7,7 +7,6 @@ import html2canvas from "html2canvas";
 import Navbar from "../components/Navbar";
 import Particle from "../components/Particle";
 import Header from "../components/Header";
-import { ArchiveRestoreIcon, LucideAlertCircle, LucideArrowRightCircle } from "lucide-react";
 
 // API functions
 const api = axios.create({
@@ -43,6 +42,7 @@ const generateReport = async (interactionHistory) => {
 };
 
 const ArticleSummary = () => {
+  const [pageLoading, setPageLoading] = useState(true);
   const [loadingStart, setLoadingStart] = useState(false);
   const [loadingNext, setLoadingNext] = useState(false);
   const [loadingStop, setLoadingStop] = useState(false);
@@ -61,6 +61,13 @@ const ArticleSummary = () => {
     feedback: "",
     report: "",
   });
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPageLoading(false);
+    }, 600);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleInitQuiz = async () => {
     setLoadingStart(true);
@@ -158,18 +165,26 @@ const ArticleSummary = () => {
     pdf.save("article_quiz_report.pdf");
   };
 
+ if (pageLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
   return (
     <>
-      <div className="z-20 absolute w-full"><Header/></div>
+      <div className="z-20 absolute w-full"><Header /></div>
       <Particle />
       <section className="flex flex-col items-center min-h-screen bg-gradient-to-b from-slate-950 to-slate-900 text-white p-28">
-        <h1 className="z-20 text-lg px-4 font-semibold mb-10 truncate max-w-md text-center  bg-gray-800 bg-opacity-70 border border-gray-600 rounded-full py-3 shadow-sm tracking-wider">
+        <h1 className="z-20 text-lg px-4 font-semibold mb-10 truncate max-w-md text-center bg-gray-800 bg-opacity-70 border border-gray-600 rounded-full py-3 shadow-sm tracking-wider">
           Practice Question and Answers from Articles
         </h1>
 
         {/* Input & Start */}
         {quizState.status === "idle" && (
-          <div className="z-20 flex flex-col  sm:flex-row gap-4 w-full max-w-2xl mb-10">
+          <div className="z-20 flex flex-col sm:flex-row gap-4 w-full max-w-2xl mb-10">
             <input
               type="text"
               placeholder="Enter article link ..."
@@ -179,8 +194,8 @@ const ArticleSummary = () => {
             />
             <button
               onClick={handleInitQuiz}
-              className="bg-gradient-to-r from-blue-400 to-blue-700 hover:from-blue-700 hover:to-blue-600  font-semibold  text-white px-1 py-2 rounded-md  w-1/3"
-              disabled={loadingStart} // Disable button while loadingStart
+              className="bg-gradient-to-r from-blue-400 to-blue-700 hover:from-blue-700 hover:to-blue-600 font-semibold text-white px-1 py-2 rounded-md w-1/3"
+              disabled={loadingStart}
             >
               {loadingStart ? "Starting..." : "Start Quiz"}
             </button>
@@ -207,7 +222,7 @@ const ArticleSummary = () => {
               <button
                 onClick={handleSubmitAnswer}
                 className="bg-gradient-to-b from-green-400 to-green-700 hover:from-green-600 hover:to-green-800 px-4 py-2 duration-500 rounded-md"
-                disabled={loadingSubmit} // Disable button while loadingSubmit
+                disabled={loadingSubmit}
               >
                 {loadingSubmit ? "Submitting..." : "Submit Answer"}
               </button>
@@ -216,7 +231,7 @@ const ArticleSummary = () => {
                 <button
                   onClick={handleStopQuiz}
                   className="bg-gradient-to-b from-yellow-400 to-yellow-700 hover:from-yellow-600 hover:to-yellow-800 px-4 py-2 duration-500 rounded-md"
-                  disabled={loadingStop} // Disable button while loadingStop
+                  disabled={loadingStop}
                 >
                   {loadingStop ? "Generating..." : "Final Report"}
                 </button>
@@ -224,7 +239,7 @@ const ArticleSummary = () => {
                 <button
                   onClick={handleStopQuiz}
                   className="bg-gradient-to-b from-red-400 to-red-700 hover:from-red-600 hover:to-red-800 px-4 py-2 duration-500 rounded-md"
-                  disabled={loadingStop} // Disable button while loadingStop
+                  disabled={loadingStop}
                 >
                   {loadingStop ? "Stopping..." : "Stop Quiz"}
                 </button>
@@ -232,11 +247,9 @@ const ArticleSummary = () => {
             </div>
 
             {quizState.feedback && (
-              <div className=" space-y-4">
-                <h3 className="text-xl font-medium">
-                  Feedback:
-                </h3>
-                <p className="bg-gradient-to-b from-blue-50 to-blue-200  text-black p-3 rounded-md">
+              <div className="space-y-4">
+                <h3 className="text-xl font-medium">Feedback:</h3>
+                <p className="bg-gradient-to-b from-blue-50 to-blue-200 text-black p-3 rounded-md">
                   {quizState.feedback}
                 </p>
 
@@ -244,7 +257,7 @@ const ArticleSummary = () => {
                   <button
                     onClick={handleNextQuestion}
                     className="mt-4 bg-gradient-to-r from-blue-400 to-blue-700 hover:from-blue-600 hover:to-blue-800 px-4 py-2 duration-500 font-medium rounded-md"
-                    disabled={loadingNext} // Disable button while loadingNext
+                    disabled={loadingNext}
                   >
                     {loadingNext ? "Generating..." : "Next Question"}
                   </button>
@@ -256,8 +269,8 @@ const ArticleSummary = () => {
 
         {/* Report */}
         {quizState.status === "report" && (
-          <div className="z-20 w-full max-w-5xl mt-2 flex flex-col items-center justify-center gap-5 ">
-            <div ref={summaryRef} className="bg-blue-200  p-7 rounded-xl">
+          <div className="z-20 w-full max-w-5xl mt-2 flex flex-col items-center justify-center gap-5">
+            <div ref={summaryRef} className="bg-blue-200 p-7 rounded-xl">
               <h2 className="text-3xl font-bold mb-4 text-black">
                 Final Report -
               </h2>
@@ -307,7 +320,7 @@ const ArticleSummary = () => {
             </div>
             <button
               onClick={handleDownloadPDF}
-              className=" bg-gradient-to-r from-green-400 to-green-700 hover:from-green-600 hover:to-green-800 text-white px-6 py-2 rounded-md"
+              className="bg-gradient-to-r from-green-400 to-green-700 hover:from-green-600 hover:to-green-800 text-white px-6 py-2 rounded-md"
             >
               Download PDF
             </button>
