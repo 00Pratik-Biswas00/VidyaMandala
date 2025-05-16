@@ -9,10 +9,25 @@ import Particle from "../components/Particle";
 import Header from "../components/Header";
 
 const PdfSummary = () => {
+  // QnA State Management
+  const [quizState, setQuizState] = useState({
+    status: "idle", // idle, question, report-ready, report
+    currentQuestion: null,
+    questions: [],
+    feedback: null,
+    report: null,
+    isFinalQuestion: false,
+  });
+
   const [pdfFile, setPdfFile] = useState(null);
   const [summary, setSummary] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loadingStart, setLoadingStart] = useState(false);
+  const [loadingSubmit, setLoadingSubmit] = useState(false);
+  const [loadingStop, setLoadingStop] = useState(false);
+  const [loadingNext, setLoadingNext] = useState(false);
 
+  const answerInputRef = useRef();
   const summaryRef = useRef();
 
   const handleFileUpload = (e) => {
@@ -24,21 +39,164 @@ const PdfSummary = () => {
     }
   };
 
-  const handleGenerateQnA = () => {
+
+  const handleInitQuiz = async () => {
     if (!pdfFile) {
       alert("Please upload a PDF file first.");
       return;
     }
 
-    // Handle QnA generation logic with `pdfFile`
+    setLoadingStart(true);
+
+    const formData = new FormData();
+    formData.append("pdf", pdfFile);
+
+    try {
+      const response = await fetch(
+        "http://localhost:5000/pdf/generate-questions", // Backend API endpoint
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      const data = await response.json();
+      if (response.ok) {
+        setQuizState({
+          status: "question",
+          currentQuestion: data.questions_list[0],
+          questions: data.questions_list.slice(1), // Remaining questions
+          feedback: null,
+          report: null,
+        });
+      } else {
+        alert(data.detail || "Failed to generate QnA");
+      }
+    } catch (error) {
+      console.error("Error while starting quiz:", error);
+      alert("Something went wrong");
+    } finally {
+      setLoadingStart(false);
+    }
   };
 
+
+  const handleSubmitAnswer = async () => {
+    const userAnswer = answerInputRef.current.value;
+    if (!userAnswer) {
+      alert("Please provide an answer.");
+      return;
+    }
+
+    setLoadingSubmit(true);
+
+    const { currentQuestion, questions, isFinalQuestion, interactionHistory  } = quizState;
+    const context = ""; // Context would ideally come from the backend or preprocessed content
+
+    try {
+      const response = await fetch("http://localhost:5000/pdf/submit-answer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          question: currentQuestion,
+          answer: userAnswer,
+          context: context,
+          history: interactionHistory,
+        }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setQuizState((prevState) => ({
+          ...prevState,
+          interactionHistory: data.history,
+          feedback: data.feedback,
+          status: isFinalQuestion ? "report-ready" : prevState.status,
+        }));
+      } else {
+        alert(data.detail || "Failed to evaluate answer.");
+      }
+    } catch (error) {
+      console.error("Error while submitting answer:", error);
+      alert("Something went wrong");
+    } finally {
+      setLoadingSubmit(false);
+    }
+  };
+
+
+  const handleNextQuestion = async () => {
+  setLoadingNext(true);
+
+  const { questions } = quizState;
+
+  try {
+    const response = await fetch("http://localhost:5000/pdf/select-question", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ questions }), // Ensure this matches the expected schema
+    });
+
+    const data = await response.json();
+    if (response.ok) {
+      setQuizState((prevState) => ({
+        ...prevState,
+        currentQuestion: data.current_question,
+        questions: data.updated_questions,
+        feedback: "",
+        isFinalQuestion: data.updated_questions.length === 0,
+      }));
+    } else {
+      alert(data.detail || "Failed to fetch next question.");
+    }
+    answerInputRef.current.value = "";
+  } catch (error) {
+    console.error("Error while fetching next question:", error);
+    alert("Something went wrong");
+  } finally {
+    setLoadingNext(false);
+  }
+};
+
+  const handleStopQuiz = async () => {
+    setLoadingStop(true);
+    const { interactionHistory } = quizState;
+    try {
+      const response = await fetch("http://localhost:5000/pdf/generate-report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          history: interactionHistory,
+        }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setQuizState({
+          ...quizState,
+          status: "report",
+          report: data.report,
+        });
+      } else {
+        alert(data.detail || "Failed to generate report.");
+      }
+    } catch (error) {
+      console.error("Error while generating report:", error);
+      alert("Something went wrong");
+    } finally {
+      setLoadingStop(false);
+    }
+  };
+
+
   const handleGenerateSummary = async () => {
-    setLoading(true);
+    
     if (!pdfFile) {
       alert("Please upload a PDF file first.");
       return;
     }
+
+    setLoading(true);
 
     const formData = new FormData();
     formData.append("pdf", pdfFile);
@@ -88,7 +246,7 @@ const PdfSummary = () => {
         <h1 className="z-20 text-lg px-4 font-semibold mb-10 truncate max-w-md text-center  bg-gray-800 bg-opacity-70 border border-gray-600 rounded-full py-3 shadow-sm tracking-wider">
           Practice Question and Answers from PDFs
         </h1>
-
+      {quizState.status === "idle" && (
         <div className="z-20 flex flex-col  gap-4 w-full max-w-2xl mb-10 items-center justify-center">
           {/* PDF Upload Button */}
           <label className="w-full sm:w-auto bg-transparent border border-white hover:bg-slate-600 duration-500  text-white  px-4 py-2 rounded-md cursor-pointer text-center">
@@ -110,10 +268,11 @@ const PdfSummary = () => {
           {/* Generate QnA Button */}
           <div className="flex  items-center justify-center gap-5">
             <button
-              onClick={handleGenerateQnA}
               className="bg-gradient-to-r from-blue-400 to-blue-700 hover:from-blue-700 hover:to-blue-700 duration-500 font-medium text-white px-4 py-2 rounded-md w-full sm:w-auto"
+              onClick={handleInitQuiz}
+              disabled={loadingStart}
             >
-              Generate QnA
+              {loadingStart ? "Starting QnA..." : "Start QnA"}
             </button>
 
             {/* Summary Button */}
@@ -126,12 +285,143 @@ const PdfSummary = () => {
             </button>
           </div>
         </div>
+      )}
 
+
+        {/* Question & Feedback UI */}
+        {(quizState.status === "question" || quizState.status === "report-ready") && (
+          <div className="z-20 w-full max-w-5xl space-y-4">
+            <h2 className="text-xl font-medium font-montserrat">Question:</h2>
+            <div className="bg-gray-800 p-4 rounded-md font-open_sans">
+              <ReactMarkdown>{quizState.currentQuestion}</ReactMarkdown>
+            </div>
+            <textarea
+              placeholder="Your answer..."
+              ref={answerInputRef}
+              className="w-full p-3 h-[15rem] rounded-md text-black font-lato"
+              rows={4}
+            />
+
+            <div className="flex gap-4 font-ubuntu font-medium">
+              <button
+                onClick={handleSubmitAnswer}
+                className="bg-green-600 hover:bg-green-700 px-4 py-2 duration-500 rounded-md"
+                disabled={loadingSubmit} // Disable button while loadingSubmit
+              >
+                {loadingSubmit ? "Submitting..." : "Submit Answer"}
+              </button>
+
+              {quizState.status === "report-ready" ? (
+                <button
+                  onClick={handleStopQuiz}
+                  className="bg-yellow-600 hover:bg-yellow-700 px-4 py-2 duration-500 rounded-md"
+                  disabled={loadingStop} // Disable button while loadingStop
+                >
+                  {loadingStop ? "Generating..." : "Final Report"}
+                </button>
+              ) : (
+                <button
+                  onClick={handleStopQuiz}
+                  className="bg-red-600 hover:bg-red-700 px-4 py-2 duration-500 rounded-md"
+                  disabled={loadingStop} // Disable button while loadingStop
+                >
+                  {loadingStop ? "Stopping..." : "Stop Quiz"}
+                </button>
+              )}
+            </div>
+
+            {quizState.feedback && (
+              <div className=" space-y-4">
+                <h3 className="text-xl font-medium font-montserrat">
+                  Feedback:
+                </h3>
+                <p className="bg-gradient-to-b from-blue-50 to-blue-200  text-black p-3 rounded-md font-lato">
+                  {quizState.feedback}
+                </p>
+
+                {quizState.status === "question" && (
+                  <button
+                    onClick={handleNextQuestion}
+                    className="mt-4 bg-blue-500 hover:bg-blue-600 px-4 py-2 duration-500 font-ubuntu font-medium rounded-md"
+                    disabled={loadingNext} // Disable button while loadingNext
+                  >
+                    {loadingNext ? "Generating..." : "Next Question"}
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Final Report */}
+        {quizState.status === "report" && (
+          <div className="z-20 max-w-3xl mt-2 flex flex-col items-center justify-center gap-5 ">
+            <div ref={summaryRef} className="bg-blue-200  p-7 rounded-xl">
+              <h2 className="text-3xl font-bold mb-4 text-black font-montserrat">
+                Final Report -
+              </h2>
+
+              <ReactMarkdown
+                components={{
+                  h1: ({ ...props }) => (
+                    <h1
+                      className="my-6 text-2xl font-bold text-gray-950"
+                      {...props}
+                    />
+                  ),
+                  h2: ({ ...props }) => (
+                    <h2
+                      className="my-6 text-xl font-playfair font-semibold text-gray-900"
+                      {...props}
+                    />
+                  ),
+                  h3: ({ ...props }) => (
+                    <h3
+                      className="my-6 text-lg font-semibold text-gray-950"
+                      {...props}
+                    />
+                  ),
+                  p: ({ ...props }) => (
+                    <p
+                      className="mb-4 text-gray-800 leading-relaxed font-lato"
+                      {...props}
+                    />
+                  ),
+                  li: ({ ...props }) => (
+                    <li
+                      className="ml-6 list-disc mb-2 text-gray-800 font-lato"
+                      {...props}
+                    />
+                  ),
+                  pre: ({ ...props }) => (
+                    <pre
+                      className="ml-6 list-disc mb-2 text-gray-800 font-lato"
+                      {...props}
+                    />
+                  ),
+                }}
+              >
+                {quizState.report}
+              </ReactMarkdown>
+            </div>
+            <button
+              onClick={handleDownloadPDF}
+              className=" bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md font-ubuntu"
+            >
+              Download PDF
+            </button>
+          </div>
+         )}
+
+
+
+
+        {/* summary */}
         {summary && (
           <div className="z-20 flex flex-col items-center justify-center gap-5 w-full h-full max-w-5xl">
             <div
               ref={summaryRef}
-              className="  bg-white text-black p-4 rounded-md  mt-5"
+              className="  bg-blue-200  p-7 rounded-xl text-black  mt-5"
             >
               <h2 className="font-bold text-lg mb-2">📄 Summary:</h2>
               <ReactMarkdown

@@ -48,13 +48,26 @@ async def generate_questions(context: str, num_questions: int = 5) -> List[str]:
     try:
         questions = await chain.ainvoke({"context": context, "num_questions": num_questions})
         questions_list = [q.strip() for q in questions.split('\n')[1:] if q.strip()]
-        return {'questions':questions_list}
+        return {
+            'questions_list':questions_list
+            }
     except Exception as e:
         return {"Error occured while generating questions": {str(e)}},500
 
+async def select_question(questions_list):
+    """Select a Questions from Question List"""
+    try:
+        selected_question = questions_list.pop(0)
+        # selected_question = await question_select_chain.ainvoke('\n'.join(questions_list))
+        return{
+            "current_question":selected_question,
+            'updated_questions':questions_list
+        }
+    except Exception as e:
+        return {"Error selecting question ": str(e)}, 500
 
 # Answer Evaluation
-async def evaluate_answer(question: str, answer: str, context: str) -> Dict[str, Any]:
+async def evaluate_answer(answer: str, context: str, interaction_history,question) -> Dict[str, Any]:
     """Evaluate user's answer and provide feedback"""
     prompt = ChatPromptTemplate.from_template(
         """You are a knowledgeable tutor. Evaluate the student's answer to the question based on the provided 
@@ -69,7 +82,17 @@ async def evaluate_answer(question: str, answer: str, context: str) -> Dict[str,
     chain = prompt | llm | StrOutputParser()
     try:
         evaluation = await chain.ainvoke({"question": question, "answer": answer, "context": context})
-        return evaluation
+        
+        interaction_history.append({
+            "question": question,
+            "answer": answer,
+            "feedback": evaluation
+        })
+
+        return {
+            'feedback':evaluation,
+            'history': interaction_history
+        }
     except Exception as e:
         return {"Error occured while evaluating answer": {str(e)}},500
 
@@ -95,7 +118,7 @@ async def generate_final_report(history: List[Dict[str, Any]]) -> str:
     chain = prompt | llm | StrOutputParser()
     try:
         report = await chain.ainvoke({"history": json.dumps(history)})
-        return report
+        return {'report':report}
     except Exception as e:
         return {"Error occured while generating report": {str(e)}},500
 
