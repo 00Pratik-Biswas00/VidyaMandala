@@ -6,7 +6,6 @@ import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { courseService } from '../services/courseService'
 import Navbar from "../components/Navbar";
-import Particle from "../components/Particle";
 import Header from "../components/Header";
 
 // API functions
@@ -29,7 +28,6 @@ const playAudio = (text) => {
   if ('speechSynthesis' in window) {
     // Create an instance of SpeechSynthesisUtterance
     const utterance = new SpeechSynthesisUtterance(text);
-
     // Optionally set properties like voice, rate, pitch
     utterance.rate = 1; // Speed of the speech
     utterance.pitch = 1; // Pitch of the speech
@@ -55,23 +53,6 @@ const submitAnswer = async (question, answer, history) => {
   });
   return response.data;
 };
-
-const recordAndSubmitAnswer = async (question, history) => {
-  try {
-    const recordedText = await recordAndTranscribeAudio();
-    
-    if (recordedText) {
-      // Use submitAnswer function to send text to the backend
-      const response = await submitAnswer(question, recordedText, history);
-      return response; // Optionally handle the backend response
-    } else {
-      console.error('No transcription available.');
-    }
-  } catch (error) {
-    console.error('Error during recording or transcribing:', error);
-  }
-};
-
 
 // Record user voice and transcribe it to text
 const recordAndTranscribeAudio = () => {
@@ -139,7 +120,6 @@ const recordAndTranscribeAudio = () => {
   });
 };
 
-
 const generateReport = async (interactionHistory) => {
   const response = await api.post("/generate-report", {
     interaction_history: interactionHistory,
@@ -148,14 +128,18 @@ const generateReport = async (interactionHistory) => {
 };
 
 
-
-
 const Interview = () => {
-    const { courseId } = useParams();
+  const { courseId } = useParams();
   const [loadingStart, setLoadingStart] = useState(false);
   const [loadingNext, setLoadingNext] = useState(false);
   const [loadingStop, setLoadingStop] = useState(false);
   const [loadingSubmit, setLoadingSubmit] = useState(false);
+  const [isRecording, setIsRecording] = useState(false); // Status of the recording
+  const [recordedText, setRecordedText] = useState(""); // Transcribed text result
+
+  const [userSpeaking, setUserSpeaking] = useState(false)
+  const [aiSpeaking, setAiSpeaking] = useState(false)
+
 
   const answerInputRef = useRef();
   const summaryRef = useRef();
@@ -203,6 +187,7 @@ const Interview = () => {
 
   const handleInitQuiz = async () => {
     setLoadingStart(true);
+    setAiSpeaking(true);
     try {
       const result = await initQuiz(course);
       console.log(result);
@@ -257,6 +242,7 @@ const Interview = () => {
 
   const handleNextQuestion = async () => {
     setLoadingNext(true);
+    setAiSpeaking(true);
     try {
       const selected = await selectQuestion(quizState.questions);
       console.log(selected);
@@ -309,12 +295,10 @@ const Interview = () => {
     pdf.save("article_quiz_report.pdf");
   };
 
-
-  const [isRecording, setIsRecording] = useState(false); // Status of the recording
-const [recordedText, setRecordedText] = useState(""); // Transcribed text result
-
 const handleRecordAnswer = async () => {
   setIsRecording(true); // Set recording status to true
+  setUserSpeaking(true); // Set user speaking status to true
+  setAiSpeaking(false); // Set AI speaking status to false
   try {
     const transcript = await recordAndTranscribeAudio(); // Start recording and transcription
     setRecordedText(transcript); // Set the transcribed text
@@ -324,30 +308,88 @@ const handleRecordAnswer = async () => {
     alert("Something went wrong while recording. Please try again.");
   } finally {
     setIsRecording(false); // Reset recording status
+    setUserSpeaking(false); // Reset user speaking status
   }
 };
-  return (
-    <>
-      <div className="z-20 absolute w-full"><Header/></div>
-      <Particle />
-      <section className="flex flex-col items-center min-h-screen bg-gradient-to-b from-blue-950 to-black text-white p-24">
-        <h1 className="text-4xl font-bold mb-10 font-montserrat">
-          Practice Question and Answers from Articles
-        </h1>
 
-        {/* Input & Start */}
+const renderWave = (color) => {
+    const bgColor = color === 'blue' ? 'bg-blue-400' : 'bg-green-400'
+
+    return (
+      <div className="flex space-x-1 h-6 items-end">
+        {[...Array(5)].map((_, i) => (
+          <div
+            key={i}
+            className={`w-1 rounded-full ${bgColor} animate-wave`}
+            style={{
+              animationDelay: `${i * 0.1}s`,
+              height: '1rem',
+            }}
+          />
+        ))}
+      </div>
+    )
+  }
+
+
+  return (
+    <div className="bg-gradient-to-b from-slate-950 to-slate-900 min-h-screen text-white font-ubuntu pb-20">
+      <Header />
+      <div className="flex flex-col items-center py-5 px-4">
+        <h2 className=" text-lg px-4 font-semibold mb-10 truncate max-w-md text-center bg-gray-800 bg-opacity-70 border border-gray-600 rounded-full py-3 shadow-sm tracking-wider">
+          Live Mock Interview
+        </h2>
+
+        {/* {course && (
+          <div className="bg-blue-900/30 px-4 py-2 rounded-lg text-center mb-8">
+            <span className="font-medium">Course: </span>
+            <span className="text-gray-300">{course.title}</span>
+          </div>
+        )} */}
+
+        <div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          <div className="bg-gradient-to-b from-gray-800 to-gray-900 rounded-2xl p-6 shadow-xl flex flex-col items-center justify-between relative min-h-[300px]">
+            <div className="relative mb-4 mt-10">
+              {userSpeaking && (
+                <span className="absolute inset-0 rounded-full border-4 border-blue-400 animate-ripple" />
+              )}
+              <div className="w-24 h-24 rounded-full bg-blue-500 flex items-center justify-center text-3xl font-bold relative z-10">
+                U
+              </div>
+            </div>
+            <p className="text-lg font-semibold mb-10">You (Candidate)</p>
+
+          
+            {userSpeaking && (
+              <div className="absolute bottom-6">{renderWave('blue')}</div>
+            )}
+          </div>
+
+          <div className="bg-gradient-to-b from-gray-900 to-gray-800 rounded-2xl p-6 shadow-xl flex flex-col items-center justify-between relative min-h-[300px]">
+            <div className="relative mb-4 mt-10">
+              {aiSpeaking && (
+                <span className="absolute inset-0 rounded-full border-4 border-green-400 animate-ripple" />
+              )}
+              <div className="w-20 h-20 rounded-full bg-green-500 flex items-center justify-center text-3xl font-bold relative z-10">
+                🤖
+              </div>
+            </div>
+            <p className="text-lg font-semibold mb-10">AI Interviewer</p>
+
+        
+            {aiSpeaking && (
+              <div className="absolute bottom-6">{renderWave('green')}</div>
+            )}
+          </div>
+        </div>
+
+        {/* Start Quiz */}
         {quizState.status === "idle" && (
-          <div className="z-20 flex flex-col  sm:flex-row gap-4 w-full max-w-2xl mb-10">
-            {/* <input
-              type="text"
-              placeholder="Enter article link"
-              value={course}
-              onChange={(e) => setCourse(e.target.value)}
-              className="px-4 py-2 text-black bg-gray-200 font-mono rounded-md w-full focus:outline-none"
-            /> */}
+          <div className="z-20 flex flex-col items-center justify-center mt-5 gap-4 w-full max-w-2xl mb-10">
             <button
               onClick={handleInitQuiz}
-              className="bg-blue-600 hover:bg-blue-700 font-ubuntu font-semibold  text-white px-1 py-2 rounded-md  w-1/3"
+              className="bg-gradient-to-r from-blue-400 to-blue-700 hover:from-blue-700 hover:to-blue-600 font-semibold  text-white px-1 py-2 rounded-md  w-1/3"
               disabled={loadingStart} // Disable button while loadingStart
             >
               {loadingStart ? "Starting..." : "Start Quiz"}
@@ -358,76 +400,57 @@ const handleRecordAnswer = async () => {
         {/* Quiz Section */}
         {(quizState.status === "question" ||
           quizState.status === "report-ready") && (
-          <div className="z-20 w-full max-w-5xl space-y-4">
-            <h2 className="text-xl font-medium font-montserrat">Question:</h2>
-            <div className="bg-gray-800 p-4 rounded-md font-open_sans">
-              <ReactMarkdown>{quizState.currentQuestion}</ReactMarkdown>
+          <div className="z-20 flex flex-col items-center justify-center gap-4 w-full max-w-5xl space-y-4">
+            
+
+            <div className="mt-5 flex gap-4 font-ubuntu font-medium">
+            {/* Record Button */}
+            <button
+            onClick={handleRecordAnswer}
+            className={`bg-gradient-to-t from-blue-400 to-blue-700 hover:from-blue-700 hover:to-blue-600 px-4 py-2 rounded-md font-semibold ${
+            isRecording ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+            disabled={isRecording} // Disable "Record" button while recording
+        >
+            {isRecording ? "Recording..." : "Record Answer"}
+            </button>
+
+            
+            {/* Submit Answer Button */}
+            <button
+            onClick={handleSubmitAnswer}
+            className="bg-gradient-to-b from-green-400 to-green-700 hover:from-green-700 hover:to-green-600 px-4 py-2 duration-500 rounded-md cursor-pointer"
+            disabled={loadingSubmit || !recordedText} // Disable if no transcription
+        >
+            {loadingSubmit ? "Submitting..." : "Submit Answer"}
+            </button>
+
+            {quizState.status === "report-ready" ? (
+                <button
+                onClick={handleStopQuiz}
+                className="bg-gradient-to-t from-yellow-400 to-yellow-700 hover:from-yellow-700 hover:to-yellow-600 px-4 py-2 duration-500 rounded-md"
+                disabled={loadingStop} // Disable button while loadingStop
+                >
+                {loadingStop ? "Generating..." : "Final Report"}
+                </button>
+            ) : (
+                <button
+                onClick={handleStopQuiz}
+                className="bg-gradient-to-t from-red-400 to-red-700 hover:from-red-700 hover:to-red-600 px-4 py-2 duration-500 rounded-md"
+                disabled={loadingStop} // Disable button while loadingStop
+                >
+                {loadingStop ? "Stopping..." : "Stop Quiz"}
+                </button>
+            )}
             </div>
 
-            {/* <textarea
-              placeholder="Your answer..."
-              ref={answerInputRef}
-              className="w-full p-3 h-[15rem] rounded-md text-black font-lato"
-              rows={4}
-            /> */}
-
-<div className="flex flex-col gap-4 font-ubuntu font-medium">
-  {/* Record Button */}
-  <button
-    onClick={handleRecordAnswer}
-    className={`bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-md font-semibold ${
-      isRecording ? "opacity-50 cursor-not-allowed" : ""
-    }`}
-    disabled={isRecording} // Disable "Record" button while recording
-  >
-    {isRecording ? "Recording..." : "Record Answer"}
-  </button>
-
-  {/* Show Transcribed Answer */}
-  {recordedText && (
-    <div className="bg-gray-100 p-4 rounded-md text-black">
-      <strong>Transcribed Answer:</strong>
-      <p>{recordedText}</p>
-    </div>
-  )}
-
-  {/* Submit Answer Button */}
-  <button
-    onClick={handleSubmitAnswer}
-    className="bg-green-600 hover:bg-green-700 px-4 py-2 duration-500 rounded-md"
-    disabled={loadingSubmit || !recordedText} // Disable if no transcription
-  >
-    {loadingSubmit ? "Submitting..." : "Submit Answer"}
-  </button>
-</div>
-
-            <div className="flex gap-4 font-ubuntu font-medium">
-              <button
-                onClick={handleSubmitAnswer}
-                className="bg-green-600 hover:bg-green-700 px-4 py-2 duration-500 rounded-md"
-                disabled={loadingSubmit} // Disable button while loadingSubmit
-              >
-                {loadingSubmit ? "Submitting..." : "Submit Answer"}
-              </button>
-
-              {quizState.status === "report-ready" ? (
-                <button
-                  onClick={handleStopQuiz}
-                  className="bg-yellow-600 hover:bg-yellow-700 px-4 py-2 duration-500 rounded-md"
-                  disabled={loadingStop} // Disable button while loadingStop
-                >
-                  {loadingStop ? "Generating..." : "Final Report"}
-                </button>
-              ) : (
-                <button
-                  onClick={handleStopQuiz}
-                  className="bg-red-600 hover:bg-red-700 px-4 py-2 duration-500 rounded-md"
-                  disabled={loadingStop} // Disable button while loadingStop
-                >
-                  {loadingStop ? "Stopping..." : "Stop Quiz"}
-                </button>
-              )}
+            {/* Show Transcribed Answer */}
+            {recordedText && (
+            <div className="bg-blue-100 p-4 flex flex-col gap-3 rounded-md text-black w-full">
+            <strong>Transcribed Answer:</strong>
+            <p>{recordedText}</p>
             </div>
+            )}
 
             {quizState.feedback && (
               <div className=" space-y-4">
@@ -435,13 +458,55 @@ const handleRecordAnswer = async () => {
                   Feedback:
                 </h3>
                 <p className="bg-gradient-to-b from-blue-50 to-blue-200  text-black p-3 rounded-md font-lato">
-                  {quizState.feedback}
+                    <ReactMarkdown
+                components={{
+                  h1: ({ ...props }) => (
+                    <h1
+                      className="my-6 text-2xl font-bold text-gray-950"
+                      {...props}
+                    />
+                  ),
+                  h2: ({ ...props }) => (
+                    <h2
+                      className="my-6 text-xl font-playfair font-semibold text-gray-900"
+                      {...props}
+                    />
+                  ),
+                  h3: ({ ...props }) => (
+                    <h3
+                      className="my-6 text-lg font-semibold text-gray-950"
+                      {...props}
+                    />
+                  ),
+                  p: ({ ...props }) => (
+                    <p
+                      className="mb-4 text-gray-800 leading-relaxed font-lato"
+                      {...props}
+                    />
+                  ),
+                  li: ({ ...props }) => (
+                    <li
+                      className="ml-6 list-disc mb-2 text-gray-800 font-lato"
+                      {...props}
+                    />
+                  ),
+                  pre: ({ ...props }) => (
+                    <pre
+                      className="ml-6 list-disc mb-2 text-gray-800 font-lato"
+                      {...props}
+                    />
+                  ),
+                }}
+              >
+                {quizState.feedback}
+              </ReactMarkdown>
+                  
                 </p>
 
                 {quizState.status === "question" && (
                   <button
                     onClick={handleNextQuestion}
-                    className="mt-4 bg-blue-500 hover:bg-blue-600 px-4 py-2 duration-500 font-ubuntu font-medium rounded-md"
+                    className="mt-4 bg-gradient-to-r from-blue-400 to-blue-700 hover:from-blue-700 hover:to-blue-600 px-4 py-2 duration-500 font-ubuntu font-medium rounded-md"
                     disabled={loadingNext} // Disable button while loadingNext
                   >
                     {loadingNext ? "Generating..." : "Next Question"}
@@ -454,7 +519,7 @@ const handleRecordAnswer = async () => {
 
         {/* Report */}
         {quizState.status === "report" && (
-          <div className="z-20 w-full max-w-5xl mt-2 flex flex-col items-center justify-center gap-5 ">
+          <div className="z-20  w-full max-w-5xl mt-8 flex flex-col items-center justify-center gap-5 ">
             <div ref={summaryRef} className="bg-blue-200  p-7 rounded-xl">
               <h2 className="text-3xl font-bold mb-4 text-black font-montserrat">
                 Final Report -
@@ -505,7 +570,7 @@ const handleRecordAnswer = async () => {
             </div>
             <button
               onClick={handleDownloadPDF}
-              className=" bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md font-ubuntu"
+              className=" bg-gradient-to-r from-green-400 to-green-700 hover:from-green-700 hover:to-green-600 text-white px-6 py-2 rounded-md font-ubuntu"
             >
               Download PDF
             </button>
@@ -513,8 +578,8 @@ const handleRecordAnswer = async () => {
         )}
 
         <Navbar />
-      </section>
-    </>
+      </div>
+    </div>
   );
 };
 
