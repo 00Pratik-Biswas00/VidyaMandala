@@ -171,14 +171,14 @@ const ArticleSummary = () => {
           <div className="z-20 flex flex-col  sm:flex-row gap-4 w-full max-w-2xl mb-10">
             <input
               type="text"
-              placeholder="Enter article link"
+              placeholder="Enter article link ..."
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              className="px-4 py-2 text-black bg-gray-200 rounded-md w-full focus:outline-none"
+              className="px-4 py-2 text-black placeholder:text-gray-700 bg-blue-200 rounded-md w-full focus:outline-none"
             />
             <button
               onClick={handleInitQuiz}
-              className="bg-gradient-to-r from-blue-400 to-blue-700 hover:from-blue-700 hover:to-blue-800  font-semibold  text-white px-1 py-2 rounded-md  w-1/3"
+              className="bg-gradient-to-r from-blue-400 to-blue-700 hover:from-blue-700 hover:to-blue-600  font-semibold  text-white px-1 py-2 rounded-md  w-1/3"
               disabled={loadingStart} // Disable button while loadingStart
             >
               {loadingStart ? "Starting..." : "Start Quiz"}
@@ -205,7 +205,7 @@ const ArticleSummary = () => {
             <div className="flex gap-4 font-medium">
               <button
                 onClick={handleSubmitAnswer}
-                className="bg-green-600 hover:bg-green-700 px-4 py-2 duration-500 rounded-md"
+                className="bg-gradient-to-b from-green-400 to-green-700 hover:from-green-600 hover:to-green-800 px-4 py-2 duration-500 rounded-md"
                 disabled={loadingSubmit} // Disable button while loadingSubmit
               >
                 {loadingSubmit ? "Submitting..." : "Submit Answer"}
@@ -214,7 +214,7 @@ const ArticleSummary = () => {
               {quizState.status === "report-ready" ? (
                 <button
                   onClick={handleStopQuiz}
-                  className="bg-yellow-600 hover:bg-yellow-700 px-4 py-2 duration-500 rounded-md"
+                  className="bg-gradient-to-b from-yellow-400 to-yellow-700 hover:from-yellow-600 hover:to-yellow-800 px-4 py-2 duration-500 rounded-md"
                   disabled={loadingStop} // Disable button while loadingStop
                 >
                   {loadingStop ? "Generating..." : "Final Report"}
@@ -222,7 +222,7 @@ const ArticleSummary = () => {
               ) : (
                 <button
                   onClick={handleStopQuiz}
-                  className="bg-red-600 hover:bg-red-700 px-4 py-2 duration-500 rounded-md"
+                  className="bg-gradient-to-b from-red-400 to-red-700 hover:from-red-600 hover:to-red-800 px-4 py-2 duration-500 rounded-md"
                   disabled={loadingStop} // Disable button while loadingStop
                 >
                   {loadingStop ? "Stopping..." : "Stop Quiz"}
@@ -242,7 +242,7 @@ const ArticleSummary = () => {
                 {quizState.status === "question" && (
                   <button
                     onClick={handleNextQuestion}
-                    className="mt-4 bg-gradient-to-r from-blue-400 to-blue-700 hover:from-blue-700 hover:to-blue-800 px-4 py-2 duration-500 font-medium rounded-md"
+                    className="mt-4 bg-gradient-to-r from-blue-400 to-blue-700 hover:from-blue-600 hover:to-blue-800 px-4 py-2 duration-500 font-medium rounded-md"
                     disabled={loadingNext} // Disable button while loadingNext
                   >
                     {loadingNext ? "Generating..." : "Next Question"}
@@ -306,7 +306,7 @@ const ArticleSummary = () => {
             </div>
             <button
               onClick={handleDownloadPDF}
-              className=" bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md"
+              className=" bg-gradient-to-r from-green-400 to-green-700 hover:from-green-600 hover:to-green-800 text-white px-6 py-2 rounded-md"
             >
               Download PDF
             </button>

@@ -268,7 +268,7 @@ const PdfSummary = () => {
           {/* Generate QnA Button */}
           <div className="flex  items-center justify-center gap-5">
             <button
-              className="bg-gradient-to-r from-blue-400 to-blue-700 hover:from-blue-700 hover:to-blue-700 duration-500 font-medium text-white px-4 py-2 rounded-md w-full sm:w-auto"
+              className="bg-gradient-to-r from-blue-400 to-blue-700 hover:from-blue-600 hover:to-blue-800 duration-500 font-medium text-white px-4 py-2 rounded-md w-full sm:w-auto"
               onClick={handleInitQuiz}
               disabled={loadingStart}
             >
@@ -278,7 +278,7 @@ const PdfSummary = () => {
             {/* Summary Button */}
             <button
               onClick={handleGenerateSummary}
-              className="bg-gradient-to-r from-blue-400 to-blue-700 hover:from-blue-700 hover:to-blue-800 duration-500 font-medium text-white px-4 py-2 rounded-md "
+              className="bg-gradient-to-r from-blue-700 to-blue-400 hover:from-blue-800 hover:to-blue-600 duration-500 font-medium text-white px-4 py-2 rounded-md "
               disabled={loading}
             >
               {loading ? "Generating..." : "Generate Summary"}
@@ -305,7 +305,7 @@ const PdfSummary = () => {
             <div className="flex gap-4 font-ubuntu font-medium">
               <button
                 onClick={handleSubmitAnswer}
-                className="bg-green-600 hover:bg-green-700 px-4 py-2 duration-500 rounded-md"
+                className="bg-gradient-to-b from-green-400 to-green-700 hover:from-green-600 hover:to-green-800 px-4 py-2 duration-500 rounded-md"
                 disabled={loadingSubmit} // Disable button while loadingSubmit
               >
                 {loadingSubmit ? "Submitting..." : "Submit Answer"}
@@ -314,7 +314,7 @@ const PdfSummary = () => {
               {quizState.status === "report-ready" ? (
                 <button
                   onClick={handleStopQuiz}
-                  className="bg-yellow-600 hover:bg-yellow-700 px-4 py-2 duration-500 rounded-md"
+                  className="bg-gradient-to-b from-yellow-400 to-yellow-700 hover:from-yellow-600 hover:to-yellow-800 px-4 py-2 duration-500 rounded-md"
                   disabled={loadingStop} // Disable button while loadingStop
                 >
                   {loadingStop ? "Generating..." : "Final Report"}
@@ -322,7 +322,7 @@ const PdfSummary = () => {
               ) : (
                 <button
                   onClick={handleStopQuiz}
-                  className="bg-red-600 hover:bg-red-700 px-4 py-2 duration-500 rounded-md"
+                  className="bg-gradient-to-b from-red-400 to-red-700 hover:from-red-600 hover:to-red-800 px-4 py-2 duration-500 rounded-md"
                   disabled={loadingStop} // Disable button while loadingStop
                 >
                   {loadingStop ? "Stopping..." : "Stop Quiz"}
@@ -342,7 +342,7 @@ const PdfSummary = () => {
                 {quizState.status === "question" && (
                   <button
                     onClick={handleNextQuestion}
-                    className="mt-4 bg-blue-500 hover:bg-blue-600 px-4 py-2 duration-500 font-ubuntu font-medium rounded-md"
+                    className="mt-4 bg-gradient-to-r from-blue-400 to-blue-700 hover:from-blue-600 hover:to-blue-800 px-4 py-2 duration-500 font-ubuntu font-medium rounded-md"
                     disabled={loadingNext} // Disable button while loadingNext
                   >
                     {loadingNext ? "Generating..." : "Next Question"}
@@ -406,7 +406,7 @@ const PdfSummary = () => {
             </div>
             <button
               onClick={handleDownloadPDF}
-              className=" bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md font-ubuntu"
+              className=" bg-gradient-to-r from-green-400 to-green-700 hover:from-green-600 hover:to-green-800 text-white px-6 py-2 rounded-md font-ubuntu"
             >
               Download PDF
             </button>
@@ -460,7 +460,7 @@ const PdfSummary = () => {
             </div>{" "}
             <button
               onClick={handleDownloadPDF}
-              className=" bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md"
+              className=" bg-gradient-to-r from-green-400 to-green-700 hover:from-green-600 hover:to-green-800 text-white px-6 py-2 rounded-md"
             >
               Download PDF
             </button>
