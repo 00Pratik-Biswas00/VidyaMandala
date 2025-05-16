@@ -70,7 +70,7 @@ function App() {
           }
         />
         <Route
-          path="/interview"
+          path="/interview/:courseId"
           element={
             <ProtectedRoute>
               <Interview />
