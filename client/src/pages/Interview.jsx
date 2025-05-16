@@ -13,7 +13,7 @@ const api = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-const initInterview = async (url) => {
+const initInterview = async (course) => {
   const response = await api.post("/init-interview", { course });
   return response.data;
 };
