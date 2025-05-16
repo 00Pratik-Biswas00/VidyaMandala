@@ -1,7 +1,7 @@
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 
 import Navbar from "../components/Navbar";
@@ -29,6 +29,16 @@ const PdfSummary = () => {
 
   const answerInputRef = useRef();
   const summaryRef = useRef();
+  const [initialLoading, setInitialLoading] = useState(true); 
+
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setInitialLoading(false);
+    }, 600); 
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
@@ -237,6 +247,15 @@ const PdfSummary = () => {
     pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
     pdf.save("pdf_summary.pdf");
   };
+
+    if (initialLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
 
   return (
     <>
