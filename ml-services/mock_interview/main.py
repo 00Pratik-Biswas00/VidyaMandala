@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 @mock_interview_router.post('/init-interview')
-async def init_interview(data: str):
+async def init_interview(data: Dict[str, Any]):
     """Initialize the quiz with an article URL"""
     try:
         course = data.get('course')

@@ -1,19 +1,21 @@
-import React, { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import Header from '../components/Header'
-import { PhoneMissed } from 'lucide-react'
+import React, { useState, useRef, useEffect } from "react";
+import { useParams } from 'react-router-dom';
+import axios from "axios";
+import ReactMarkdown from "react-markdown";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 import { courseService } from '../services/courseService'
-import { authService } from '../services/authService'
-import { enrollmentService } from '../services/enrollmentService'
-import axios from 'axios'
+import Navbar from "../components/Navbar";
+import Particle from "../components/Particle";
+import Header from "../components/Header";
 
-
+// API functions
 const api = axios.create({
   baseURL: "http://localhost:5000/interview",
   headers: { "Content-Type": "application/json" },
 });
 
-const initInterview = async (course) => {
+const initQuiz = async (course) => {
   const response = await api.post("/init-interview", { course });
   return response.data;
 };
@@ -39,33 +41,67 @@ const generateReport = async (interactionHistory) => {
   return response.data;
 };
 
+const Interview = () => {
+    const { courseId } = useParams();
+  const [loadingStart, setLoadingStart] = useState(false);
+  const [loadingNext, setLoadingNext] = useState(false);
+  const [loadingStop, setLoadingStop] = useState(false);
+  const [loadingSubmit, setLoadingSubmit] = useState(false);
 
-function Interview() {
-  const { courseId } = useParams();
-  const navigate = useNavigate();
-  const [userSpeaking, setUserSpeaking] = useState(true)
-  const [aiSpeaking, setAiSpeaking] = useState(true)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [course, setCourse] = useState(null)
-  const [isEnrolled, setIsEnrolled] = useState(false)
+  const answerInputRef = useRef();
+  const summaryRef = useRef();
 
-  const [MockState, setMockState] = useState({
-      status: "idle", // 'idle', 'question', 'report'
-      questions: [],
-      currentQuestion: "",
-      interactionHistory: [],
-      feedback: "",
-      report: "",
-    });
-  
-  const handleInitMock = async () => {
+  const [course, setCourse] = useState("");
+  const [quizState, setQuizState] = useState({
+    status: "idle", // 'idle', 'question', 'report-ready', 'report'
+    summary: "",
+    questions: [],
+    currentQuestion: "",
+    interactionHistory: [],
+    feedback: "",
+    report: "",
+  });
+
+  useEffect(() => {
+  const fetchCourse = async () => {
+    try {
+      const response = await courseService.getCourseById(courseId);
+        console.log(response);
+        
+      if (!response || !response.course) {
+        setError("Course not found");
+        setLoading(false);
+        return;
+      }
+
+      const result = {
+        course_title: response.course.title,
+        topics_title: response.course.topics.map(topic => topic.title).join('\n'),
+      };
+
+      setCourse(result.topics_title);
+      console.log(course);
+    } catch (error) {
+      setError("Failed to fetch course");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchCourse();
+}, [courseId]);
+
+  const handleInitQuiz = async () => {
     setLoadingStart(true);
     try {
-      const result = await initInterview(course);
+      const result = await initQuiz(course);
+      console.log(result);
+      
       const selected = await selectQuestion(result.questions);
+      console.log(selected);
 
-      setMockState({
+      setQuizState({
         status: "question",
         questions: selected.updated_list,
         currentQuestion: selected.current_question,
@@ -80,58 +116,6 @@ function Interview() {
     }
   };
 
-  useEffect(() => {
-    const loadCourseData = async () => {
-      try {
-        if (!courseId) {
-          setError("Course ID is missing");
-          setLoading(false);
-          return;
-        }
-        
-        // Check if user is logged in
-        if (!authService.isLoggedIn()) {
-          navigate("/login");
-          return;
-        }
-        
-        // Fetch the course data
-        const response = await courseService.getCourseById(courseId);
-        if (!response || !response.course) {
-          setError("Course not found");
-          setLoading(false);
-          return;
-        }
-        const result = {
-            'course_title': response.course.title,
-            'topics_title': response.course.topics.map(topic => topic.title).join('\n')
-        };
-        console.log(result);
-        
-        setCourse(result.topics_title);
-        
-        // Check enrollment status
-        const enrolled = await enrollmentService.checkEnrollmentStatus(courseId);
-        setIsEnrolled(enrolled);
-        
-        if (!enrolled) {
-          setError("You need to be enrolled in this course to access the mock interview");
-          setLoading(false);
-          return;
-        }
-        
-        setLoading(false);
-      } catch (err) {
-        console.error("Error loading course data:", err);
-        setError("Failed to load course data. Please try again.");
-        setLoading(false);
-      }
-    };
-    
-    loadCourseData();
-    handleInitMock();
-  }, [courseId, navigate]);
-
   const handleSubmitAnswer = async () => {
     setLoadingSubmit(true);
     const answer = answerInputRef.current?.value;
@@ -139,17 +123,18 @@ function Interview() {
 
     try {
       const result = await submitAnswer(
-        MockState.currentQuestion,
+        quizState.currentQuestion,
         answer,
-        MockState.interactionHistory
+        quizState.interactionHistory
       );
-
-      setMockState((prev) => ({
+      console.log(result);
+      
+      setQuizState((prev) => ({
         ...prev,
         interactionHistory: result.interaction_history,
         feedback: result.feedback,
         status:
-          MockState.questions.length > 0 ? "question" : "report-ready",
+          quizState.questions.length > 0 ? "question" : "report-ready",
       }));
     } catch (error) {
       console.error("Failed to submit answer:", error);
@@ -161,11 +146,13 @@ function Interview() {
   const handleNextQuestion = async () => {
     setLoadingNext(true);
     try {
-      const selected = await selectQuestion(MockState.questions);
+      const selected = await selectQuestion(quizState.questions);
+      console.log(selected);
+      
       setQuizState((prev) => ({
         ...prev,
         currentQuestion: selected.current_question,
-        question: selected.updated_list,
+        questions: selected.updated_list,
         feedback: "",
       }));
       answerInputRef.current.value = "";
@@ -179,7 +166,9 @@ function Interview() {
   const handleStopQuiz = async () => {
     setLoadingStop(true);
     try {
-      const result = await generateReport(MockState.interactionHistory);
+      const result = await generateReport(quizState.interactionHistory);
+      console.log(result);
+      
       setQuizState((prev) => ({
         ...prev,
         status: "report",
@@ -192,130 +181,179 @@ function Interview() {
     }
   };
 
-  const renderWave = (color) => {
-    const bgColor = color === 'blue' ? 'bg-blue-400' : 'bg-green-400'
+  const handleDownloadPDF = async () => {
+    const input = summaryRef.current;
+    const canvas = await html2canvas(input);
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new jsPDF("p", "mm", "a4");
+    const imgProps = pdf.getImageProperties(imgData);
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
-    return (
-      <div className="flex space-x-1 h-6 items-end">
-        {[...Array(5)].map((_, i) => (
-          <div
-            key={i}
-            className={`w-1 rounded-full ${bgColor} animate-wave`}
-            style={{
-              animationDelay: `${i * 0.1}s`,
-              height: '1rem',
-            }}
-          />
-        ))}
-      </div>
-    )
-  }
-  
-  if (loading) {
-    return (
-      <div className="bg-gradient-to-b from-gray-900 to-gray-800 min-h-screen text-white">
-        <Header />
-        <div className="flex flex-col items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
-          <p className="mt-4">Loading interview session...</p>
-        </div>
-      </div>
-    );
-  }
-  
-  if (error) {
-    return (
-      <div className="bg-gradient-to-b from-gray-900 to-gray-800 min-h-screen text-white">
-        <Header />
-        <div className="flex flex-col items-center justify-center min-h-screen px-4">
-          <div className="bg-gray-800 p-6 rounded-lg max-w-md text-center">
-            <h2 className="text-xl font-bold mb-4">Error</h2>
-            <p className="mb-6">{error}</p>
-            <button 
-              onClick={() => navigate(`/details/${course?.title || ""}`)}
-              className="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg font-semibold transition"
-            >
-              Back to Course
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+    pdf.save("article_quiz_report.pdf");
+  };
 
   return (
-    <div className="bg-gradient-to-b from-gray-900 to-gray-800 min-h-screen text-white font-ubuntu">
-      <Header />
-      <div className="flex flex-col items-center py-10 px-4">
-        <h2 className="text-gray-300 truncate max-w-md text-center bg-gray-800 bg-opacity-70 border border-gray-600 rounded-full text-lg px-4 py-1 shadow-sm tracking-wide mb-4">
-          Live Mock Interview
-        </h2>
-        
-        {course && (
-          <div className="bg-blue-900/30 px-4 py-2 rounded-lg text-center mb-8">
-            <span className="font-medium">Course: </span>
-            <span className="text-gray-300">{course.title}</span>
+    <>
+      <div className="z-20 absolute w-full"><Header/></div>
+      <Particle />
+      <section className="flex flex-col items-center min-h-screen bg-gradient-to-b from-blue-950 to-black text-white p-24">
+        <h1 className="text-4xl font-bold mb-10 font-montserrat">
+          Practice Question and Answers from Articles
+        </h1>
+
+        {/* Input & Start */}
+        {quizState.status === "idle" && (
+          <div className="z-20 flex flex-col  sm:flex-row gap-4 w-full max-w-2xl mb-10">
+            {/* <input
+              type="text"
+              placeholder="Enter article link"
+              value={course}
+              onChange={(e) => setCourse(e.target.value)}
+              className="px-4 py-2 text-black bg-gray-200 font-mono rounded-md w-full focus:outline-none"
+            /> */}
+            <button
+              onClick={handleInitQuiz}
+              className="bg-blue-600 hover:bg-blue-700 font-ubuntu font-semibold  text-white px-1 py-2 rounded-md  w-1/3"
+              disabled={loadingStart} // Disable button while loadingStart
+            >
+              {loadingStart ? "Starting..." : "Start Quiz"}
+            </button>
           </div>
         )}
 
-        <div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 gap-6">
-          
-          <div className="bg-gray-700 rounded-2xl p-6 shadow-xl flex flex-col items-center justify-between relative min-h-[300px]">
-            <div className="relative mb-4 mt-10">
-              {userSpeaking && (
-                <span className="absolute inset-0 rounded-full border-4 border-blue-400 animate-ripple" />
-              )}
-              <div className="w-24 h-24 rounded-full bg-blue-500 flex items-center justify-center text-3xl font-bold relative z-10">
-                U
-              </div>
+        {/* Quiz Section */}
+        {(quizState.status === "question" ||
+          quizState.status === "report-ready") && (
+          <div className="z-20 w-full max-w-5xl space-y-4">
+            <h2 className="text-xl font-medium font-montserrat">Question:</h2>
+            <div className="bg-gray-800 p-4 rounded-md font-open_sans">
+              <ReactMarkdown>{quizState.currentQuestion}</ReactMarkdown>
             </div>
-            <p className="text-lg font-semibold mb-10">You (Candidate)</p>
 
-          
-            {userSpeaking && (
-              <div className="absolute bottom-6">{renderWave('blue')}</div>
+            <textarea
+              placeholder="Your answer..."
+              ref={answerInputRef}
+              className="w-full p-3 h-[15rem] rounded-md text-black font-lato"
+              rows={4}
+            />
+
+            <div className="flex gap-4 font-ubuntu font-medium">
+              <button
+                onClick={handleSubmitAnswer}
+                className="bg-green-600 hover:bg-green-700 px-4 py-2 duration-500 rounded-md"
+                disabled={loadingSubmit} // Disable button while loadingSubmit
+              >
+                {loadingSubmit ? "Submitting..." : "Submit Answer"}
+              </button>
+
+              {quizState.status === "report-ready" ? (
+                <button
+                  onClick={handleStopQuiz}
+                  className="bg-yellow-600 hover:bg-yellow-700 px-4 py-2 duration-500 rounded-md"
+                  disabled={loadingStop} // Disable button while loadingStop
+                >
+                  {loadingStop ? "Generating..." : "Final Report"}
+                </button>
+              ) : (
+                <button
+                  onClick={handleStopQuiz}
+                  className="bg-red-600 hover:bg-red-700 px-4 py-2 duration-500 rounded-md"
+                  disabled={loadingStop} // Disable button while loadingStop
+                >
+                  {loadingStop ? "Stopping..." : "Stop Quiz"}
+                </button>
+              )}
+            </div>
+
+            {quizState.feedback && (
+              <div className=" space-y-4">
+                <h3 className="text-xl font-medium font-montserrat">
+                  Feedback:
+                </h3>
+                <p className="bg-gradient-to-b from-blue-50 to-blue-200  text-black p-3 rounded-md font-lato">
+                  {quizState.feedback}
+                </p>
+
+                {quizState.status === "question" && (
+                  <button
+                    onClick={handleNextQuestion}
+                    className="mt-4 bg-blue-500 hover:bg-blue-600 px-4 py-2 duration-500 font-ubuntu font-medium rounded-md"
+                    disabled={loadingNext} // Disable button while loadingNext
+                  >
+                    {loadingNext ? "Generating..." : "Next Question"}
+                  </button>
+                )}
+              </div>
             )}
           </div>
+        )}
 
-          <div className="bg-gray-700 rounded-2xl p-6 shadow-xl flex flex-col items-center justify-between relative min-h-[300px]">
-            <div className="relative mb-4 mt-10">
-              {aiSpeaking && (
-                <span className="absolute inset-0 rounded-full border-4 border-green-400 animate-ripple" />
-              )}
-              <div className="w-20 h-20 rounded-full bg-green-500 flex items-center justify-center text-3xl font-bold relative z-10">
-                🤖
-              </div>
+        {/* Report */}
+        {quizState.status === "report" && (
+          <div className="z-20 w-full max-w-5xl mt-2 flex flex-col items-center justify-center gap-5 ">
+            <div ref={summaryRef} className="bg-blue-200  p-7 rounded-xl">
+              <h2 className="text-3xl font-bold mb-4 text-black font-montserrat">
+                Final Report -
+              </h2>
+
+              <ReactMarkdown
+                components={{
+                  h1: ({ ...props }) => (
+                    <h1
+                      className="my-6 text-2xl font-bold text-gray-950"
+                      {...props}
+                    />
+                  ),
+                  h2: ({ ...props }) => (
+                    <h2
+                      className="my-6 text-xl font-playfair font-semibold text-gray-900"
+                      {...props}
+                    />
+                  ),
+                  h3: ({ ...props }) => (
+                    <h3
+                      className="my-6 text-lg font-semibold text-gray-950"
+                      {...props}
+                    />
+                  ),
+                  p: ({ ...props }) => (
+                    <p
+                      className="mb-4 text-gray-800 leading-relaxed font-lato"
+                      {...props}
+                    />
+                  ),
+                  li: ({ ...props }) => (
+                    <li
+                      className="ml-6 list-disc mb-2 text-gray-800 font-lato"
+                      {...props}
+                    />
+                  ),
+                  pre: ({ ...props }) => (
+                    <pre
+                      className="ml-6 list-disc mb-2 text-gray-800 font-lato"
+                      {...props}
+                    />
+                  ),
+                }}
+              >
+                {quizState.report}
+              </ReactMarkdown>
             </div>
-            <p className="text-lg font-semibold mb-10">AI Interviewer</p>
-
-        
-            {aiSpeaking && (
-              <div className="absolute bottom-6">{renderWave('green')}</div>
-            )}
+            <button
+              onClick={handleDownloadPDF}
+              className=" bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md font-ubuntu"
+            >
+              Download PDF
+            </button>
           </div>
-        </div>
+        )}
 
-        <div className="mt-12 flex flex-col sm:flex-row gap-4">
-          <button
-            className="bg-green-600 hover:bg-green-700 px-6 py-2 rounded-lg font-semibold transition"
-            onClick={() => {
-              handleSubmitAnswer()
-              setUserSpeaking(false)
-              setAiSpeaking(true)
-            }}
-          >
-            Next Question
-          </button>
-          <button
-            className="bg-red-600 hover:bg-red-700 px-6 py-2 rounded-lg font-semibold transition"
-            onClick={() => navigate(`/details/${course?.title || ""}`)}
-          >
-            <PhoneMissed className="mr-2 inline" /> End Interview
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
+        <Navbar />
+      </section>
+    </>
+  );
+};
 
-export default Interview
+export default Interview;
