@@ -6,6 +6,7 @@ from block_diagram_generator.main import block_diagram_router
 from article_qa_gen.main import article_quiz_router
 from pdf_qa_summary_gen.main import pdf_summary_router
 from learning_plan.main import learning_plan_router
+from mock_interview.main import mock_interview_router
 
 load_dotenv()
 
@@ -25,6 +26,7 @@ app.include_router(article_quiz_router, prefix="/article")
 app.include_router(block_diagram_router, prefix="/block")
 app.include_router(pdf_summary_router, prefix="/pdf")
 app.include_router(learning_plan_router, prefix="/learning")
+app.include_router(mock_interview_router, prefix='/interview')
 
 
 
