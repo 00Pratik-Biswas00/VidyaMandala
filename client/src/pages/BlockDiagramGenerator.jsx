@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import Navbar from "../components/Navbar";
 import Particle from "../components/Particle";
 import Header from "../components/Header";
+import { Blocks } from "lucide-react";
 
 const BlockDiagramGenerator = () => {
   const [text, setText] = useState("");

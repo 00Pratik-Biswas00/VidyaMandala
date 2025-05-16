@@ -7,6 +7,7 @@ import html2canvas from "html2canvas";
 import Navbar from "../components/Navbar";
 import Particle from "../components/Particle";
 import Header from "../components/Header";
+import { ArchiveRestoreIcon, LucideAlertCircle, LucideArrowRightCircle } from "lucide-react";
 
 // API functions
 const api = axios.create({
