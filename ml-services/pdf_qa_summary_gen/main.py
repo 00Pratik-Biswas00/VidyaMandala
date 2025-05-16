@@ -44,7 +44,7 @@ async def generate_summary(pdf: UploadFile = File(...)):
 @pdf_summary_router.post('/generate-questions')
 async def generate_questions_endpoint(pdf: UploadFile = File(...)):  # Renamed function
     os.makedirs("uploads", exist_ok=True)
-    pdf_path = os.path.join("uploads", pdf.filename)  # Keep using the `pdf.filename`
+    pdf_path = os.path.join("uploads", pdf.filename)  
     
     try:
         # Save the uploaded file
@@ -53,8 +53,7 @@ async def generate_questions_endpoint(pdf: UploadFile = File(...)):  # Renamed f
         
         # Process the PDF
         text = process_pdf(pdf_path)
-        result = await generate_questions("\n\n".join(text))  # Using the helper here
-
+        result = await generate_questions("\n\n".join(text)) 
         return result
     except HTTPException:
         raise
