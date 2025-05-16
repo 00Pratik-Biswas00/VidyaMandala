@@ -347,28 +347,29 @@ const LearningPlan = () => {
 
   return (
     <>
-      <Header />
+      <div className="z-20 absolute w-full"><Header/></div>
+
       <Particle />
-      <section className="flex flex-col items-center min-h-screen bg-gradient-to-b from-blue-950 to-black text-white p-10 pb-24">
+      <section className="flex flex-col items-center min-h-screen bg-gradient-to-b from-slate-950 to-slate-900 text-white p-28">
         <h1 className="z-20 text-lg px-4 font-semibold mb-10 truncate max-w-md text-center  bg-gray-800 bg-opacity-70 border border-gray-600 rounded-3xl py-3 shadow-sm tracking-wider">
           Daily Learning Plan Generator
         </h1>
 
         {course && (
-          <div className="mb-6 bg-blue-900/50 px-4 py-2 rounded-lg">
+          <div className="z-20 mb-6 bg-blue-900/50 px-4 py-2 rounded-lg">
             <span className="font-medium">Course: </span>
-            <span className="text-blue-200">{course.title}</span>
+            <span className="text-gray-300">{course.title}</span>
           </div>
         )}
 
         {step === "input" && (
           <>
-            <p className="mb-10 max-w-5xl text-center">
+            <p className="z-20 italic mb-10 max-w-5xl text-center">
               Start by telling us how long you want to study and how much time
               you can spend daily. Then take a short quiz to customize your
               plan!
             </p>
-            <div className="z-20 flex flex-col items-center justify-center gap-5 bg-blue-950 p-7 rounded-2xl w-full max-w-lg">
+            <div className="z-20 flex flex-col items-center justify-center gap-5 bg-gray-900 p-7 rounded-2xl w-full max-w-lg">
               <label className="w-full text-white text-lg flex flex-col gap-2">
                 Expected Completion timeframe (Months)?
                 <input
@@ -394,7 +395,7 @@ const LearningPlan = () => {
               <button
                 onClick={handleStartQuiz}
                 disabled={quizLoading}
-                className="bg-blue-600 hover:bg-blue-700 u font-semibold text-white px-6 py-2 rounded-md w-full md:w-1/2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-gradient-to-r from-blue-400 to-blue-700 hover:from-blue-600 hover:to-blue-800 u font-semibold text-white px-6 py-2 rounded-md w-full md:w-1/2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {quizLoading ? "Loading Quiz..." : "Start Quiz"}
               </button>
@@ -403,7 +404,7 @@ const LearningPlan = () => {
         )}
 
         {step === "quiz" && (
-          <div className="z-20 flex flex-col gap-6 bg-blue-950 p-7 rounded-2xl w-full max-w-3xl">
+          <div className="z-20 flex flex-col gap-6 bg-gray-900 p-7 rounded-2xl w-full max-w-3xl">
             <h2 className="text-2xl font-semibold  text-center">
               Quiz - Answer {questions.length} Questions
             </h2>
@@ -455,7 +456,7 @@ const LearningPlan = () => {
         )}
 
         {step === "result" && result && (
-          <div className="z-20 flex flex-col gap-4 bg-blue-900 p-7 rounded-2xl w-full max-w-3xl">
+          <div className="z-20 flex flex-col gap-4 bg-gray-900 p-7 rounded-2xl w-full max-w-4xl">
             <h2 className="text-3xl font-bold ">
               Your Personalized Plan
             </h2>
@@ -494,6 +495,7 @@ const LearningPlan = () => {
               {result.plan}
             </ReactMarkdown>
 
+<div className=" flex justify-center items-center ">
             <button
               onClick={() => {
                 setStep("input");
@@ -503,10 +505,10 @@ const LearningPlan = () => {
                 setAnswers({});
                 setResult(null);
               }}
-              className="bg-blue-600 hover:bg-blue-700 font-semibold text-white px-4 py-2 rounded-md mt-6"
+              className="bg-gradient-to-r from-blue-400 to-blue-700 hover:from-blue-600 hover:to-blue-800 font-semibold text-white px-4 py-2 rounded-md mt-6 w-fit"
             >
               Generate Again
-            </button>
+            </button></div>
           </div>
         )}
 
