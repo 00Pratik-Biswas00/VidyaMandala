@@ -1,10 +1,66 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
 import Header from '../components/Header'
 import { PhoneMissed } from 'lucide-react'
+import { courseService } from '../services/courseService'
+import { authService } from '../services/authService'
+import { enrollmentService } from '../services/enrollmentService'
 
 function Interview() {
+  const { courseId } = useParams();
+  const navigate = useNavigate();
   const [userSpeaking, setUserSpeaking] = useState(true)
   const [aiSpeaking, setAiSpeaking] = useState(true)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [course, setCourse] = useState(null)
+  const [isEnrolled, setIsEnrolled] = useState(false)
+  
+  useEffect(() => {
+    const loadCourseData = async () => {
+      try {
+        if (!courseId) {
+          setError("Course ID is missing");
+          setLoading(false);
+          return;
+        }
+        
+        // Check if user is logged in
+        if (!authService.isLoggedIn()) {
+          navigate("/login");
+          return;
+        }
+        
+        // Fetch the course data
+        const response = await courseService.getCourseById(courseId);
+        if (!response || !response.course) {
+          setError("Course not found");
+          setLoading(false);
+          return;
+        }
+        
+        setCourse(response.course);
+        
+        // Check enrollment status
+        const enrolled = await enrollmentService.checkEnrollmentStatus(courseId);
+        setIsEnrolled(enrolled);
+        
+        if (!enrolled) {
+          setError("You need to be enrolled in this course to access the mock interview");
+          setLoading(false);
+          return;
+        }
+        
+        setLoading(false);
+      } catch (err) {
+        console.error("Error loading course data:", err);
+        setError("Failed to load course data. Please try again.");
+        setLoading(false);
+      }
+    };
+    
+    loadCourseData();
+  }, [courseId, navigate]);
 
   const renderWave = (color) => {
     const bgColor = color === 'blue' ? 'bg-blue-400' : 'bg-green-400'
@@ -24,12 +80,53 @@ function Interview() {
       </div>
     )
   }
+  
+  if (loading) {
+    return (
+      <div className="bg-gradient-to-b from-gray-900 to-gray-800 min-h-screen text-white">
+        <Header />
+        <div className="flex flex-col items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+          <p className="mt-4">Loading interview session...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  if (error) {
+    return (
+      <div className="bg-gradient-to-b from-gray-900 to-gray-800 min-h-screen text-white">
+        <Header />
+        <div className="flex flex-col items-center justify-center min-h-screen px-4">
+          <div className="bg-gray-800 p-6 rounded-lg max-w-md text-center">
+            <h2 className="text-xl font-bold mb-4">Error</h2>
+            <p className="mb-6">{error}</p>
+            <button 
+              onClick={() => navigate(`/details/${course?.title || ""}`)}
+              className="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg font-semibold transition"
+            >
+              Back to Course
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-gradient-to-b from-gray-900 to-gray-800 min-h-screen text-white font-ubuntu">
       <Header />
       <div className="flex flex-col items-center py-10 px-4">
-        <h2 className=" text-gray-300 truncate max-w-md text-center  bg-gray-800 bg-opacity-70 border border-gray-600 rounded-full text-lg px-4 py-1 shadow-sm tracking-wide mb-10">Live Interview  </h2>
+        <h2 className="text-gray-300 truncate max-w-md text-center bg-gray-800 bg-opacity-70 border border-gray-600 rounded-full text-lg px-4 py-1 shadow-sm tracking-wide mb-4">
+          Live Mock Interview
+        </h2>
+        
+        {course && (
+          <div className="bg-blue-900/30 px-4 py-2 rounded-lg text-center mb-8">
+            <span className="font-medium">Course: </span>
+            <span className="text-gray-300">{course.title}</span>
+          </div>
+        )}
 
         <div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 gap-6">
           
@@ -80,12 +177,9 @@ function Interview() {
           </button>
           <button
             className="bg-red-600 hover:bg-red-700 px-6 py-2 rounded-lg font-semibold transition"
-            onClick={() => {
-              setUserSpeaking(false)
-              setAiSpeaking(false)
-            }}
+            onClick={() => navigate(`/details/${course?.title || ""}`)}
           >
-            <PhoneMissed/>
+            <PhoneMissed className="mr-2 inline" /> End Interview
           </button>
         </div>
       </div>

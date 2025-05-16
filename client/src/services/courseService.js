@@ -26,15 +26,15 @@ export const courseService = {
     }
   },
   // Add this if missing
-getCourseById: async (id) => {
-  try {
-    if (!id) throw new Error("Course ID is required");
-    console.log("Getting course by ID:", id);
-    const response = await axios.get(`${API_URL}/id/${id}`);
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching course by ID:", error);
-    throw error;
-  }
-},
+  getCourseById: async (id) => {
+    try {
+      if (!id) throw new Error("Course ID is required");
+      console.log("Getting course by ID:", id);
+      const response = await axios.get(`${API_URL}/id/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching course by ID:", error);
+      throw error;
+    }
+  },
 };
