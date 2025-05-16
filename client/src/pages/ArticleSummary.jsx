@@ -7,6 +7,7 @@ import html2canvas from "html2canvas";
 import Navbar from "../components/Navbar";
 import Particle from "../components/Particle";
 import Header from "../components/Header";
+import { ArchiveRestoreIcon, LucideAlertCircle, LucideArrowRightCircle } from "lucide-react";
 
 // API functions
 const api = axios.create({
@@ -162,9 +163,9 @@ const ArticleSummary = () => {
       <div className="z-20 absolute w-full"><Header/></div>
       <Particle />
       <section className="flex flex-col items-center min-h-screen bg-gradient-to-b from-slate-950 to-slate-900 text-white p-24">
-        <h1 className="z-20 text-lg px-4 font-semibold mb-10 truncate max-w-md text-center  bg-gray-800 bg-opacity-70 border border-gray-600 rounded-full py-3 shadow-sm tracking-wider">
-          Practice Question and Answers from Articles
-        </h1>
+        <h1 className="flex justify-center items-center gap-2 z-20 text-lg px-4 font-semibold mb-10 truncate max-w-md text-center  bg-gray-800 bg-opacity-70 border border-gray-600 rounded-full py-3 shadow-sm tracking-wider">
+          Practice Question and Answers from Articles 
+          </h1>
 
         {/* Input & Start */}
         {quizState.status === "idle" && (
