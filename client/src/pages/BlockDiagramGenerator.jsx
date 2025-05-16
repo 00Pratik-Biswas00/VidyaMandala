@@ -50,15 +50,15 @@ const BlockDiagramGenerator = () => {
 
         <div className="z-20 flex flex-col items-center gap-7 w-full max-w-6xl mb-7">
           <textarea
-            placeholder="Enter text"
+            placeholder="Enter text ...."
             value={text}
             onChange={(e) => setText(e.target.value)}
-            className="px-4 py-2 h-[22rem] text-black bg-gray-200 rounded-md w-full focus:outline-none"
+            className="px-4 py-2 h-[17rem] text-black placeholder:text-gray-700 bg-blue-200 rounded-md w-full focus:outline-none"
             rows={6}
           />
           <button
             onClick={handleSubmit}
-            className="bg-gradient-to-r from-blue-400 to-blue-700 hover:from-blue-700 hover:to-blue-800 font-semibold text-white px-6 py-2 rounded-md w-1/3"
+            className="bg-gradient-to-r from-blue-400 to-blue-700 hover:from-blue-600 hover:to-blue-800 font-semibold text-white px-6 py-2 rounded-md w-1/3"
             disabled={loading}
           >
             {loading ? "Generating..." : "Generate Diagram"}
@@ -78,7 +78,7 @@ const BlockDiagramGenerator = () => {
             <a
               href={pdfUrl}
               download="block_diagram.pdf"
-              className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md"
+              className=" bg-gradient-to-r from-green-400 to-green-700 hover:from-green-600 hover:to-green-800 text-white px-6 py-2 rounded-md"
             >
               Download PDF
             </a>
