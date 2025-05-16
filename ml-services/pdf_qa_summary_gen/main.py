@@ -5,8 +5,14 @@ import traceback
 from typing import List, Dict, Any
 from pdf_qa_summary_gen.pdf_summary import extract_text_from_pdf, generate_summary_from_text
 from pdf_qa_summary_gen.pdf_qa import generate_questions,generate_final_report,evaluate_answer,process_pdf,select_question
+from pydantic import BaseModel
+from typing import List
 
 pdf_summary_router = APIRouter()
+
+class QuestionRequest(BaseModel):
+    questions: List[str] 
+
 
 @pdf_summary_router.post("/generate-summary")
 async def generate_summary(pdf: UploadFile = File(...)):
@@ -36,9 +42,9 @@ async def generate_summary(pdf: UploadFile = File(...)):
 
 
 @pdf_summary_router.post('/generate-questions')
-async def generate_questions(pdf: UploadFile = File(...)):
+async def generate_questions_endpoint(pdf: UploadFile = File(...)):  # Renamed function
     os.makedirs("uploads", exist_ok=True)
-    pdf_path = os.path.join("uploads", pdf.filename)
+    pdf_path = os.path.join("uploads", pdf.filename)  # Keep using the `pdf.filename`
     
     try:
         # Save the uploaded file
@@ -47,7 +53,7 @@ async def generate_questions(pdf: UploadFile = File(...)):
         
         # Process the PDF
         text = process_pdf(pdf_path)
-        result = await generate_questions("\n\n".join(text))
+        result = await generate_questions("\n\n".join(text))  # Using the helper here
 
         return result
     except HTTPException:
@@ -57,23 +63,27 @@ async def generate_questions(pdf: UploadFile = File(...)):
         raise HTTPException(
             status_code=500,
             detail="Failed to generate questions"
-        )   
+        )
+
+
+
+
 
 @pdf_summary_router.post('/select-question')
-async def select_questions(data):
-    """Select a question from Questions List"""
+async def select_questions(data: QuestionRequest):
+    """Select a question from the list of questions"""
     try:
-        questions_list = data.get('questions')
-        resullt = await select_question(questions_list)
-        return resullt
-    
+        questions_list = data.questions  # Access the questions list
+        result = await select_question(questions_list)
+        return result
     except Exception as e:
         print(traceback.format_exc())
         raise HTTPException(
             status_code=500,
             detail="Failed to Select Question"
-        ) 
-    
+        )
+
+
 @pdf_summary_router.post('/submit-answer')
 async def submit_answer(data: Dict[str,Any]):
     try:
