@@ -13,13 +13,32 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      setError('Please enter a valid email address.')
+      return
+    }
+
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long.')
+      return
+    }
+
     setLoading(true)
-    
+
     try {
       await authService.register({ name, email, password })
       navigate('/')
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to register')
+      const rawMessage = err.response?.data?.message || 'Failed to register'
+
+      if (rawMessage.includes('valid email')) {
+        setError('Please enter a valid email address.')
+      } else if (rawMessage.includes('password') && rawMessage.includes('minimum allowed length')) {
+        setError('Password must be at least 6 characters long.')
+      } else {
+        setError(rawMessage)
+      }
     } finally {
       setLoading(false)
     }
