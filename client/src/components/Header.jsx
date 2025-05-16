@@ -80,7 +80,6 @@ const Header = () => {
         <div className="flex justify-between items-center h-16">
           <Link to="/" className="flex items-center space-x-2">
             <img src={logo} alt="Vidyamandala logo" className="w-16 h-16" />
-            <span className="text-2xl font-bold text-blue-400">Vidyamandala</span>
           </Link>
 
           <div className="hidden md:flex items-center space-x-6">
@@ -102,28 +101,28 @@ const Header = () => {
             ) : (
               user && (
                 <div id="profile-menu" className="relative">
-              <button
-  onClick={() => setProfileMenuOpen((prev) => !prev)}
-  className="flex items-center gap-2 pl-1 pr-3 py-1 bg-gray-800 rounded-full border border-gray-700 hover:bg-gray-700 transition-colors duration-200 shadow-sm"
->
-  <div
-    className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold"
-    style={{ backgroundColor: getRandomColor(user.name) }}
-    title={user.name}
-  >
-    {user.name.charAt(0).toUpperCase()}
-  </div>
-  <ChevronDown className="w-4 h-4 text-white" />
-</button>
+                  <button
+                    onClick={() => setProfileMenuOpen((prev) => !prev)}
+                    className="flex items-center gap-2 pl-1 pr-3 py-1 bg-gray-800 rounded-full border border-gray-700 hover:bg-gray-700 transition-colors duration-200 shadow-sm"
+                  >
+                    <div
+                      className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold"
+                      style={{ backgroundColor: getRandomColor(user.name) }}
+                      title={user.name}
+                    >
+                      {user.name.charAt(0).toUpperCase()}
+                    </div>
+                    <ChevronDown className="w-4 h-4 text-white" />
+                  </button>
 
                   {profileMenuOpen && (
-                    <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg z-50 overflow-hidden">
-                      <div className="px-4 py-2 text-gray-800 text-sm border-b">
+                    <div className="absolute right-0 mt-2 w-40 rounded-lg shadow-lg z-50 overflow-hidden bg-gray-800 ">
+                      <div className="px-4 py-2 text-gray-300 text-sm border-b border-gray-300">
                         {user.name}
                       </div>
                       <button
                         onClick={handleLogout}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-red-600 hover:text-white transition duration-150"
+                        className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-red-600 transition duration-150 hover:text-white"
                       >
                         Logout
                       </button>

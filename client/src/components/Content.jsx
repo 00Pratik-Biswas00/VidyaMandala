@@ -1,5 +1,11 @@
 import React, { useEffect, useState, useRef } from "react";
-import { Filter, ChevronLeft, ChevronRight, BookOpen, Search } from "lucide-react";
+import {
+  Filter,
+  ChevronLeft,
+  ChevronRight,
+  BookOpen,
+  Search,
+} from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, EffectCards } from "swiper/modules";
 import "swiper/css";
@@ -27,38 +33,43 @@ const Content = () => {
     const fetchCoursesAndRecommendations = async () => {
       try {
         setLoading(true);
-        
+
         // Get all courses
         const response = await courseService.getAllCourses();
         const allCourses = response.courses;
         setCourses(allCourses);
-        
+
         // Calculate category counts for badges
         const counts = allCourses.reduce((acc, course) => {
           acc[course.category] = (acc[course.category] || 0) + 1;
           return acc;
         }, {});
         setCategoryCounts(counts);
-        
+
         // Check ML service availability first
         const isAvailable = await mlServiceUtils.checkHealth();
         setMlServiceAvailable(isAvailable);
-        
+
         // Check if user is logged in
         const isLoggedIn = authService.isLoggedIn();
         const userData = authService.getCurrentUser();
-        
+
         if (isLoggedIn && userData && userData.id && isAvailable) {
           try {
             // Get personalized recommendations
-            const recommendations = await recommendationService.getRecommendations(allCourses);
+            const recommendations =
+              await recommendationService.getRecommendations(allCourses);
             if (recommendations && recommendations.length > 0) {
               // Map recommendation IDs to full course objects
-              const recommendedCourseObjects = recommendations.map(rec => {
-                const matchingCourse = allCourses.find(course => course._id === rec.id);
-                return matchingCourse || null;
-              }).filter(Boolean);
-              
+              const recommendedCourseObjects = recommendations
+                .map((rec) => {
+                  const matchingCourse = allCourses.find(
+                    (course) => course._id === rec.id
+                  );
+                  return matchingCourse || null;
+                })
+                .filter(Boolean);
+
               if (recommendedCourseObjects.length > 0) {
                 setFeaturedCourses(recommendedCourseObjects);
                 setIsRecommended(true);
@@ -70,11 +81,10 @@ const Content = () => {
             console.error("Failed to get recommendations:", recError);
           }
         }
-        
+
         // Fallback to random courses
         setFeaturedCourses(getRandomCourses(allCourses, 6));
         setIsRecommended(false);
-          
       } catch (err) {
         console.error("Failed to fetch courses:", err);
         setError("Failed to load courses. Please try again.");
@@ -121,10 +131,10 @@ const Content = () => {
   const handleSearch = (e) => {
     const query = e.target.value;
     setSearchQuery(query);
-    
+
     // Track search activity if it's meaningful
     if (query.length >= 3 && authService.isLoggedIn() && mlServiceAvailable) {
-      recommendationService.trackActivity('search', null, query);
+      recommendationService.trackActivity("search", null, query);
     }
   };
 
@@ -154,11 +164,24 @@ const Content = () => {
       <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900 flex items-center justify-center">
         <div className="bg-slate-800 p-8 rounded-xl shadow-2xl border border-red-900/30 max-w-md">
           <div className="text-red-500 text-4xl mb-4 flex justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-16 w-16"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
             </svg>
           </div>
-          <h2 className="text-xl font-semibold mb-4 text-white text-center">{error}</h2>
+          <h2 className="text-xl font-semibold mb-4 text-white text-center">
+            {error}
+          </h2>
           <button
             className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-all shadow-lg hover:shadow-blue-600/30"
             onClick={() => window.location.reload()}
@@ -180,7 +203,8 @@ const Content = () => {
           </span>
         </h1>
         <p className="text-slate-400 max-w-2xl">
-          Discover top-rated courses to enhance your skills and advance your career in technology and beyond.
+          Discover top-rated courses to enhance your skills and advance your
+          career in technology and beyond.
         </p>
       </header>
 
@@ -188,13 +212,17 @@ const Content = () => {
       <section className="max-w-7xl mx-auto mb-20 px-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
-            <div className={`px-4 py-1.5 rounded-full text-sm font-medium ${
-              isRecommended 
-                ? "bg-gradient-to-r from-amber-500/20 to-amber-700/20 border border-amber-500/30 text-amber-300" 
-                : "bg-gradient-to-r from-emerald-500/20 to-emerald-700/20 border border-emerald-500/30 text-emerald-300"
-            }`}>
+            <div
+              className={`px-4 py-1.5 rounded-full text-sm font-medium ${
+                isRecommended
+                  ? "bg-gradient-to-r from-amber-500/20 to-amber-700/20 border border-amber-500/30 text-amber-300"
+                  : "bg-gradient-to-r from-emerald-500/20 to-emerald-700/20 border border-emerald-500/30 text-emerald-300"
+              }`}
+            >
               <span className="flex items-center gap-2">
-                {isRecommended ? "💡 Recommended For You" : "🚀 Featured Courses"}
+                {isRecommended
+                  ? "💡 Recommended For You"
+                  : "🚀 Featured Courses"}
               </span>
             </div>
             {isRecommended && (
@@ -203,17 +231,17 @@ const Content = () => {
               </span>
             )}
           </div>
-          
+
           <div className="flex gap-2">
-            <button 
-              onClick={slidePrev} 
+            <button
+              onClick={slidePrev}
               className="flex items-center justify-center w-9 h-9 rounded-full bg-slate-800/70 hover:bg-slate-700 text-white border border-slate-700 transition-all"
               aria-label="Previous slide"
             >
               <ChevronLeft size={18} />
             </button>
-            <button 
-              onClick={slideNext} 
+            <button
+              onClick={slideNext}
               className="flex items-center justify-center w-9 h-9 rounded-full bg-slate-800/70 hover:bg-slate-700 text-white border border-slate-700 transition-all"
               aria-label="Next slide"
             >
@@ -221,7 +249,7 @@ const Content = () => {
             </button>
           </div>
         </div>
-        
+
         {/* Swiper container */}
         <div className="overflow-hidden">
           <Swiper
@@ -261,18 +289,21 @@ const Content = () => {
                     key={idx}
                     onClick={() => setSelectedCategory(cat)}
                     className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1.5
-                      ${selectedCategory === cat
-                        ? "bg-blue-600 text-white border border-blue-500"
-                        : "bg-slate-800 text-slate-300 border border-slate-700 hover:border-slate-600"
+                      ${
+                        selectedCategory === cat
+                          ? "bg-blue-600 text-white border border-blue-500"
+                          : "bg-slate-800 text-slate-300 border border-slate-700 hover:border-slate-600"
                       }`}
                   >
                     {cat}
                     {cat !== "All" && categoryCounts[cat] && (
-                      <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                        selectedCategory === cat
-                          ? "bg-blue-700 text-blue-100"
-                          : "bg-slate-700 text-slate-300"
-                      }`}>
+                      <span
+                        className={`text-xs px-1.5 py-0.5 rounded-full ${
+                          selectedCategory === cat
+                            ? "bg-blue-700 text-blue-100"
+                            : "bg-slate-700 text-slate-300"
+                        }`}
+                      >
                         {categoryCounts[cat]}
                       </span>
                     )}
@@ -280,13 +311,9 @@ const Content = () => {
                 ))}
               </div>
             </div>
-            
+
             {/* Search input */}
             <div className="w-full md:w-64 lg:w-80">
-              <p className="text-slate-400 text-sm mb-3 flex items-center gap-1.5">
-                <Search size={15} />
-                <span>Search</span>
-              </p>
               <div className="relative">
                 <input
                   type="text"
@@ -326,20 +353,21 @@ const Content = () => {
           <div>
             <h2 className="text-2xl font-bold text-white mb-1">All Courses</h2>
             <p className="text-slate-400 text-sm">
-              {filteredCourses.length} {filteredCourses.length === 1 ? 'course' : 'courses'} available
+              {filteredCourses.length}{" "}
+              {filteredCourses.length === 1 ? "course" : "courses"} available
             </p>
           </div>
-          
+
           {selectedCategory !== "All" && (
-            <button 
-              onClick={() => setSelectedCategory("All")} 
+            <button
+              onClick={() => setSelectedCategory("All")}
               className="text-sm text-blue-400 hover:text-blue-300 flex items-center gap-1"
             >
               Clear filter
             </button>
           )}
         </div>
-        
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredCourses.length > 0 ? (
             filteredCourses.map((course, index) => (
@@ -350,11 +378,14 @@ const Content = () => {
               <div className="flex justify-center mb-4">
                 <BookOpen className="h-16 w-16 text-slate-600" />
               </div>
-              <h3 className="text-xl font-medium text-white mb-2">No courses found</h3>
+              <h3 className="text-xl font-medium text-white mb-2">
+                No courses found
+              </h3>
               <p className="text-slate-400">
-                Try adjusting your search or filter to find what you're looking for.
+                Try adjusting your search or filter to find what you're looking
+                for.
               </p>
-              <button 
+              <button
                 onClick={() => {
                   setSelectedCategory("All");
                   setSearchQuery("");
