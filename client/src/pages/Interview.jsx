@@ -392,7 +392,7 @@ const renderWave = (color) => {
               className="bg-gradient-to-r from-blue-400 to-blue-700 hover:from-blue-700 hover:to-blue-600 font-semibold  text-white px-1 py-2 rounded-md  w-1/3"
               disabled={loadingStart} // Disable button while loadingStart
             >
-              {loadingStart ? "Starting..." : "Start Quiz"}
+              {loadingStart ? "Starting..." : "Start Interview"}
             </button>
           </div>
         )}

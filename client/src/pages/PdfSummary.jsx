@@ -291,7 +291,7 @@ const PdfSummary = () => {
               onClick={handleInitQuiz}
               disabled={loadingStart}
             >
-              {loadingStart ? "Starting QnA..." : "Start QnA"}
+              {loadingStart ? "Starting Quiz..." : "Start Quiz"}
             </button>
 
             {/* Summary Button */}
