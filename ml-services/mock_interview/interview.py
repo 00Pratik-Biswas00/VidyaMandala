@@ -56,7 +56,7 @@ Course content overview:
 {course_content}"""
 
 QUESTION_GENERATION_PROMPT = """Based on the course topics name below, generate {num_questions} 
-technical interview questions that properly assess understanding of concepts. 
+short one liner technical interview questions that properly assess understanding of concepts.
 Format as a numbered list:
 Example : 1. question, 2. question
 
@@ -72,30 +72,23 @@ Just return the selected question:
 
 {questions_list}"""
 
-ANSWER_EVALUATION_PROMPT = """As a professional technical interviewer, evaluate this answer:
+ANSWER_EVALUATION_PROMPT = """As a professional technical interviewer, Evaluate this answer to the question. Be specific about what's 
+correct and what could be improved. Keep it constructive and under 3 sentences:
 Question: {question}
 Answer: {answer}
+"""
 
-Provide specific feedback that:
-1. Highlights what was correct/good
-2. Points out any inaccuracies or missing elements
-3. Suggests improvements
-4. Provides a model answer
-
-Format your response as:
-Strengths: [bullet points]
-Areas for Improvement: [bullet points]
-Model Answer: [text]"""
-
-FINAL_REPORT_PROMPT = """Generate a comprehensive interview performance report based on these 
-interactions. Include:
+FINAL_REPORT_PROMPT = """Generate a comprehensive interview performance Markdown report based on these 
+interactions. on format:
 
 1. Overall performance summary
 2. Technical strengths demonstrated
 3. Key areas needing improvement
 
 Interview History:
-{interaction_history}"""
+{interaction_history}
+
+Just follow the format and dont include any of these Candidate, Role ,Date or any extra text"""
 
 # Chain definitions
 question_gen_chain = (

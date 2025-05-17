@@ -100,7 +100,7 @@ async def evaluate_answer(answer: str, context: str, interaction_history,questio
 async def generate_final_report(history: List[Dict[str, Any]]) -> str:
     """Generate a comprehensive feedback report"""
     prompt = ChatPromptTemplate.from_template(
-        """Based on the following quiz history, generate a detailed feedback report for the student. 
+        """Based on the following quiz history, generate a detailed feedback Markdown report for the student. 
         Highlight strengths, areas for improvement, and overall performance. Provide specific suggestions 
         for further study based on the questions that were challenging.
         
