@@ -194,7 +194,7 @@ const Content = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-900 pb-32 pt-4">
+    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-900 pb-32 pt-4 px-10">
       {/* Page header */}
       <header className="max-w-7xl mx-auto px-6 mb-12">
         <h1 className="text-3xl md:text-4xl font-bold text-white mb-3 mt-8">
@@ -259,7 +259,7 @@ const Content = () => {
             breakpoints={{
               640: { slidesPerView: 1.2 },
               768: { slidesPerView: 2.2 },
-              1024: { slidesPerView: 3.2 },
+              1024: { slidesPerView: 4 },
               1280: { slidesPerView: 4 },
             }}
             className="py-4 px-1"
