@@ -27,19 +27,19 @@ By integrating these features, PACE significantly enhances the learning experien
 
 ![1mycourse](https://github.com/user-attachments/assets/762e6245-5d27-43e5-af42-fe5ab87d6238)
 
+![enrollcourse](https://github.com/user-attachments/assets/3984297a-e3e2-4665-9133-20a77b62c3a6)
+
+![1start](https://github.com/user-attachments/assets/b3526406-6a1f-416e-848e-4cf34887f44f)
+
 ![1next](https://github.com/user-attachments/assets/d24075e9-dd83-4bc2-a585-fa72b3764ae4)
 
 ![1record](https://github.com/user-attachments/assets/d801b9f7-dcd0-4129-9ef0-a200373c66bd)
 
 ![1squiz](https://github.com/user-attachments/assets/c9dc0ca3-5b53-4920-a784-4f7df2938a3c)
 
-![1start](https://github.com/user-attachments/assets/b3526406-6a1f-416e-848e-4cf34887f44f)
-
 ![1upPDF](https://github.com/user-attachments/assets/eda4e758-12fc-40d1-ae83-a7a0d0017dd2)
 
 ![dailyplandetails](https://github.com/user-attachments/assets/b2e484e0-a4a4-48ef-acf5-581135e53dea)
-
-![enrollcourse](https://github.com/user-attachments/assets/3984297a-e3e2-4665-9133-20a77b62c3a6)
 
 ![gengendiag](https://github.com/user-attachments/assets/77230f8b-5fff-49d8-bf76-6344750a6167)
 
