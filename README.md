@@ -21,7 +21,11 @@ PACE introduces the following key enhancements:
 
 By integrating these features, PACE significantly enhances the learning experience, making the platform more interactive, personalized, and effective for users.
 
-## Demo
+## Demo Video
+
+https://youtu.be/ffrlJVwwVGI
+
+## Demo Images
 
 ![1logout](https://github.com/user-attachments/assets/e783ad8c-538c-4c82-b152-d0f1945ed24d)
 
